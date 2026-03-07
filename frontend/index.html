@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura AI Labs | Premium RAG Systems</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800&family=Outfit:wght@400;600;700;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="blob-bg"></div>
+    <div class="blob-bg blob-2"></div>
+
+    <nav class="navbar">
+        <div class="logo">Aura<span>AI Labs</span></div>
+        <div class="nav-links">
+            <a href="#services" id="nav-services">Layanan Global</a>
+            <a href="#workflow" id="nav-workflow">Cara Kerja</a>
+            <a href="#" id="nav-dashboard" class="hidden">Dashboard Klien <i class="fa-solid fa-gauge"></i></a>
+            <a href="#" id="nav-order" class="hidden">Katalog Layanan AI <i class="fa-solid fa-cart-shopping"></i></a>
+        </div>
+        <div class="nav-actions">
+            <!-- Login Button -->
+            <button class="btn-glow secondary btn-sm" id="btnOpenLogin"><i class="fa-regular fa-user"></i> Client
+                Login</button>
+            <button class="btn-glow admin btn-sm" id="btnOpenAdmin"><i class="fa-solid fa-shield-halved"></i>
+                Admin</button>
+            <div class="status-badge" id="appStatus" style="display: none;">API</div>
+            <button class="btn-glow secondary btn-sm hidden" id="btnLogout"><i
+                    class="fa-solid fa-arrow-right-from-bracket"></i> Logout</button>
+        </div>
+    </nav>
+
+    <!-- LANDING PAGE VIEW -->
+    <div id="view-landing" class="view-section active">
+        <!-- Hero Section -->
+        <header class="hero" id="hero-section">
+            <div class="chip">🚀 Platform Agensi AI Terpercaya 2026</div>
+            <h1>Automasi Data Internal Menjadi <br><span>Asisten AI Cerdas</span></h1>
+            <p>Kami membangun sistem RAG (Retrieval-Augmented Generation) kustom terenkripsi penuh yang mengerti
+                dokumen, SOP, dan database perusahaan Anda. Hentikan data silo, mulai era AI.</p>
+            <div class="hero-actions">
+                <a href="#services" class="btn-glow hero-btn">Lihat Paket AI RAG <i
+                        class="fa-solid fa-arrow-right"></i></a>
+            </div>
+
+            <!-- Features Grid -->
+            <div class="features-grid">
+                <div class="feat-box">
+                    <i class="fa-solid fa-file-contract"></i>
+                    <h4>Smart E-Contract</h4>
+                    <span class="muted">Kontrak otomatis dari AI & Escrow</span>
+                </div>
+                <div class="feat-box">
+                    <i class="fa-solid fa-fingerprint"></i>
+                    <h4>Immutable Hash</h4>
+                    <span class="muted">Keamanan Integritas Data Tertinggi</span>
+                </div>
+                <div class="feat-box">
+                    <i class="fa-solid fa-network-wired"></i>
+                    <h4>LangGraph Agents</h4>
+                    <span class="muted">Orkestrasi AI Kompleks</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Tech Stack Marquee -->
+        <div class="tech-marquee-wrapper">
+            <div class="tech-marquee">
+                <!-- Set 1 -->
+                <span><i class="fa-solid fa-brain"></i> LangGraph</span>
+                <span><i class="fa-solid fa-link"></i> LangChain</span>
+                <span><i class="fa-brands fa-python"></i> FastAPI</span>
+                <span><i class="fa-brands fa-envira"></i> ChromaDB</span>
+                <span><i class="fa-solid fa-database"></i> MySQL</span>
+                <span><i class="fa-solid fa-shield-halved"></i> AES-256 Crypto</span>
+                <span><i class="fa-solid fa-microchip"></i> Llama 3</span>
+                <span><i class="fa-solid fa-fingerprint"></i> SHA-512 Escrow</span>
+                <!-- Set 2 -->
+                <span><i class="fa-solid fa-brain"></i> LangGraph</span>
+                <span><i class="fa-solid fa-link"></i> LangChain</span>
+                <span><i class="fa-brands fa-python"></i> FastAPI</span>
+                <span><i class="fa-brands fa-envira"></i> ChromaDB</span>
+                <span><i class="fa-solid fa-database"></i> MySQL</span>
+                <span><i class="fa-solid fa-shield-halved"></i> AES-256 Crypto</span>
+                <span><i class="fa-solid fa-microchip"></i> Llama 3</span>
+                <span><i class="fa-solid fa-fingerprint"></i> SHA-512 Escrow</span>
+            </div>
+        </div>
+
+        <!-- Workflow Section -->
+        <section class="workflow-section" id="workflow">
+            <div class="section-title">
+                <h2>Cara Kerja <span class="accent-text">Aura AI</span></h2>
+                <p>Proses transparan end-to-end dari brief hingga serah terima lisensi dan IP Source Code.</p>
+            </div>
+            <div class="workflow-grid">
+                <div class="workflow-step">
+                    <div class="step-number">1</div>
+                    <h3>AI Brief & E-Contract</h3>
+                    <p>Sistem AI kami mengekstrak kebutuhan bisnis Anda menjadi representasi klausul hukum baku. Ikat
+                        dengan Digital Signature Hash.</p>
+                </div>
+                <div class="workflow-step">
+                    <div class="step-number">2</div>
+                    <h3>Escrow Security</h3>
+                    <p>Amankan pendanaan via webhook gateway terkripsi. Dana ditahan aman (Escrow) hingga Agent RAG Anda
+                        terbukti valid tayang.</p>
+                </div>
+                <div class="workflow-step">
+                    <div class="step-number">3</div>
+                    <h3>Engineering & Handover</h3>
+                    <p>Tim Engineer kami membangun arsitektur. Anda dapat mengajukan revisi atau menerima deployment.
+                        Source Code IP sepenuhnya diberikan ke Anda di akhir fase.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Benefits Section -->
+        <section class="benefits-section">
+            <div class="benefits-wrapper">
+                <div class="benefit-row">
+                    <div class="benefit-content">
+                        <h3>Mengapa Menggunakan Arsitektur <span class="accent-text">RAG Proprietary?</span></h3>
+                        <p>Aura AI Labs tidak sekadar menyerahkan Chatbot, kami menyerahkan sistem pipeline backend
+                            lengkap yang siap menyatu dengan database SQL/NoSQL internal korporat Anda secara privat.
+                        </p>
+                        <ul>
+                            <li><i class="fa-solid fa-check"></i> <b>Zero Data Leak:</b> Tidak ada dokumen sensitif
+                                perusahaan dikirim ke Public Cloud luar.</li>
+                            <li><i class="fa-solid fa-check"></i> <b>Agentic Flow:</b> LLM dapat melakukan query ke API
+                                HR/Finance, tidak sekadar menggenerasi teks basa-basi.</li>
+                            <li><i class="fa-solid fa-check"></i> <b>Full IP Ownership:</b> Hak Kekayaan Intelektual
+                                diserahkan penuh kepada Klien saat checkout.</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-image">
+                        <i class="fa-solid fa-network-wired"></i>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing section -->
+        <section class="services" id="services">
+            <div class="section-title">
+                <h2>Solusi RAG Terbaik</h2>
+                <p>Pilih arsitektur sistem yang sesuai skala bisnis Anda.</p>
+            </div>
+
+            <div class="cards-wrapper">
+                <div class="service-card">
+                    <h3>Knowledge Bot <span>(Basic)</span></h3>
+                    <p class="price">Rp 15.000.000</p>
+                    <ul>
+                        <li><i class="fa-solid fa-check"></i> Chatbot AI untuk Dokumen PDF</li>
+                        <li><i class="fa-solid fa-check"></i> LangChain & Vector DB (Chroma)</li>
+                        <li><i class="fa-solid fa-check"></i> Maksimal 100 Dokumen</li>
+                    </ul>
+                    <button class="btn-glow order-btn" data-package="Knowledge Bot (Basic)">Pesan & Mulai Brief</button>
+                </div>
+                <div class="service-card premium">
+                    <div class="badge">Enterprise Ready</div>
+                    <h3>Enterprise RAG <span>(Pro)</span></h3>
+                    <p class="price">Rp 45.000.000</p>
+                    <ul>
+                        <li><i class="fa-solid fa-check"></i> Integrasi DB SQL & API Internal</li>
+                        <li><i class="fa-solid fa-check"></i> Semantic & Hybrid Search</li>
+                        <li><i class="fa-solid fa-check"></i> Orkestrasi Agentic (LangGraph)</li>
+                        <li><i class="fa-solid fa-check"></i> Immutable Audit & Keamanan Kripto</li>
+                    </ul>
+                    <button class="btn-glow order-btn" data-package="Enterprise RAG (Pro)">Pesan & Mulai Brief</button>
+                    <div class="glow-effect"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <div class="logo">Aura<span>AI Labs</span></div>
+                    <p style="margin-top:10px;">Pionir rekayasa sistem kecerdasan buatan berbasis Retrieval-Augmented
+                        Generation khusus Korporat dan Enterprise di Asia Tenggara.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Layanan</h4>
+                    <a href="#services">Knowledge Bot</a>
+                    <a href="#services">Enterprise RAG</a>
+                    <a href="#services">Custom AI Agent (NLP)</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Legal & Portal</h4>
+                    <a href="#" onclick="document.getElementById('btnOpenAdmin').click(); return false;">Admin
+                        Gateway</a>
+                    <a href="#" onclick="document.getElementById('btnOpenLogin').click(); return false;">Client Portal
+                        Login</a>
+                    <a href="#">Immutable Audit Policy</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                &copy; 2026 Aura AI Labs. All rights reserved. Built with FastAPI & Vanilla Glassmorphism JS.
+            </div>
+        </footer>
+    </div>
+
+    <!-- CLIENT DASHBOARD VIEW -->
+    <div id="view-client-dashboard" class="view-section hidden container">
+        <!-- Dashboard Top Navigation / Greeting -->
+        <div class="dashboard-nav">
+            <div class="user-profile">
+                <div class="avatar"><i class="fa-solid fa-user-tie"></i></div>
+                <div>
+                    <h2 style="font-size: 20px; font-family: var(--font-heading);">Selamat Datang, <span
+                            class="accent-text" id="clientNameDisplay">Klien</span> 👋</h2>
+                    <p class="muted" style="font-size: 13px;">Corporate Account • PT. Maju Mundur</p>
+                </div>
+            </div>
+            <button class="btn-glow" id="btnNewProject"><i class="fa-solid fa-plus"></i> Pesan Layanan Baru</button>
+        </div>
+
+        <!-- KPI / Stats Cards -->
+        <div class="stats-container" style="margin-bottom: 30px;">
+            <div class="stat-card">
+                <div class="stat-icon" style="color: #60a5fa; background: rgba(59, 130, 246, 0.1);"><i
+                        class="fa-solid fa-layer-group"></i></div>
+                <div class="stat-content">
+                    <p class="muted">Total Proyek</p>
+                    <h3 id="client-total-projects">0</h3>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color: #10b981; background: rgba(16, 185, 129, 0.1);"><i
+                        class="fa-solid fa-shield-halved"></i></div>
+                <div class="stat-content">
+                    <p class="muted">Active Escrow</p>
+                    <h3 id="client-active-escrow">Rp 0</h3>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color: #f59e0b; background: rgba(245, 158, 11, 0.1);"><i
+                        class="fa-solid fa-clock-rotate-left"></i></div>
+                <div class="stat-content">
+                    <p class="muted">Menunggu Aksi</p>
+                    <h3 id="client-pending-action" style="color: #f59e0b;">0</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-panel styled-panel" style="margin-top: 20px;">
+            <div class="panel-header">
+                <h3><i class="fa-solid fa-bars-progress"></i> Manajemen Proyek RAG Aktif</h3>
+            </div>
+            <div class="table-responsive">
+                <table class="project-table enhanced-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nama Proyek</th>
+                            <th>Status Transaksi</th>
+                            <th>Akses Deployment (App)</th>
+                            <th>Aksi / Catatan Developer</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clientProjectTableBody">
+                        <!-- Disimulasi pakai JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- CLIENT BROWSE SERVICES (KATALOG / SHOP) VIEW -->
+    <div id="view-client-order" class="view-section hidden container">
+        <div class="dashboard-header">
+            <div>
+                <h2>Katalog App & AI Agents</h2>
+                <p class="muted">Eksplorasi solusi AI siap pakai kami. Klik untuk melihat detail fitur dan demo video.
+                </p>
+            </div>
+            <button class="btn-glow secondary" onclick="switchView('view-client-dashboard')"><i
+                    class="fa-solid fa-arrow-left"></i> Kembali ke Profil</button>
+        </div>
+
+        <div class="shop-grid" style="margin-top: 30px;">
+            <!-- Product 1 -->
+            <div class="shop-card" onclick="openProductDetails('Knowledge Bot')">
+                <div class="shop-image">
+                    <img src="assets/knowledge_bot.png" alt="Knowledge Bot">
+                </div>
+                <div class="shop-info">
+                    <h3>Knowledge Bot <span class="badge-sm">Basic</span></h3>
+                    <p class="price">Rp 15.000.000</p>
+                    <p class="desc">Aplikasi Chatbot pintar untuk basis data dokumen SOP atau Knowledge Base internal
+                        perusahaan Anda. Membaca hingga 100 dokumen PDF.</p>
+                </div>
+            </div>
+
+            <!-- Product 2 -->
+            <div class="shop-card premium-card" onclick="openProductDetails('Enterprise RAG (Pro)')">
+                <div class="shop-image">
+                    <img src="assets/enterprise_rag.png" alt="Enterprise RAG">
+                    <div class="shop-badge">Best Seller</div>
+                </div>
+                <div class="shop-info">
+                    <h3>Enterprise RAG <span class="badge-sm pro">Pro</span></h3>
+                    <p class="price">Rp 45.000.000</p>
+                    <p class="desc">Arsitektur Hybrid & Semantic Search terintegrasi langsung ke Database SQL dan API
+                        internal Anda secara Agentic.</p>
+                </div>
+            </div>
+
+            <!-- Product 3 -->
+            <div class="shop-card" onclick="openProductDetails('Custom Agent (NLP)')">
+                <div class="shop-image">
+                    <img src="assets/custom_agent.png" alt="Custom Agent">
+                </div>
+                <div class="shop-info">
+                    <h3>Custom AI Agent <span class="badge-sm nlp">NLP</span></h3>
+                    <p class="price">Mulai Rp 60.000.000</p>
+                    <p class="desc">Pengembangan model spesifik untuk alur kerja rumit (HR Screening, Financial
+                        Analysis, Automated Accounting) berbasis LangGraph multi-agent.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN DASHBOARD VIEW -->
+    <div id="view-admin-dashboard" class="view-section hidden container" style="max-width: 1100px;">
+        <!-- Top Toolbar -->
+        <div class="dashboard-nav admin-nav">
+            <div>
+                <h2
+                    style="font-size: 22px; font-family: var(--font-heading); display:flex; align-items:center; gap:10px;">
+                    <i class="fa-solid fa-shield-cat" style="color:var(--accent);"></i> Aura AI <span
+                        style="font-weight: 300; opacity: 0.7;">Central Command</span>
+                </h2>
+                <p class="muted" style="margin-top: 5px; font-size: 13px;">Overview Lifecycle Proyek & Node Jaringan</p>
+            </div>
+            <div class="system-status-pill">
+                <div class="pulsing-dot"></div> Systems Operational
+            </div>
+        </div>
+
+        <!-- KPI Board -->
+        <div class="stats-container admin-stats" style="margin-bottom: 30px;">
+            <div class="stat-card">
+                <div class="stat-info">
+                    <p class="muted">Total Value Locked (Escrow)</p>
+                    <h2 class="accent-text" id="admin-tvl" style="font-size: 28px; line-height: 1.2;">Rp 0</h2>
+                    <span class="trend up"><i class="fa-solid fa-arrow-trend-up"></i> Terverifikasi</span>
+                </div>
+                <div class="stat-chart"><i class="fa-brands fa-ethereum" style="font-size: 40px; opacity: 0.1;"></i>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-info">
+                    <p class="muted">Active Pipelines</p>
+                    <h2 id="admin-active-pipelines" style="font-size: 28px; line-height: 1.2;">0</h2>
+                    <span class="trend neutral">Sedang Berjalan</span>
+                </div>
+                <div class="stat-chart"><i class="fa-solid fa-network-wired" style="font-size: 40px; opacity: 0.1;"></i>
+                </div>
+            </div>
+            <div class="stat-card" style="border-right: 4px solid #ef4444;">
+                <div class="stat-info">
+                    <p class="muted">Pending Revisions</p>
+                    <h2 id="admin-pending-revisions" style="color: #ef4444; font-size: 28px; line-height: 1.2;">0</h2>
+                    <span class="trend down">Butuh Tindakan</span>
+                </div>
+                <div class="stat-chart"><i class="fa-solid fa-triangle-exclamation"
+                        style="font-size: 40px; opacity: 0.1;"></i></div>
+            </div>
+        </div>
+
+        <div class="glass-panel styled-panel" style="margin-top: 20px;">
+            <div class="panel-header">
+                <h3><i class="fa-solid fa-rocket"></i> Deployment & Delivery Queue</h3>
+                <p class="muted" style="margin-top: 5px; font-size: 12px;">Kontrol pengembangan dan penyerahan aplikasi
+                    RAG ke Klien.</p>
+            </div>
+            <div class="table-responsive">
+                <table class="project-table enhanced-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Project / Node</th>
+                            <th>Status Transaksi</th>
+                            <th>Aksi Operasional</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminAuditTableBody">
+                        <!-- Disimulasi pakai JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- MODALS SECTION -->
+
+    <!-- Product Details Modal (E-Commerce Style) -->
+    <div class="modal-overlay hidden" id="product-details-modal">
+        <div class="checkout-modal" style="max-width: 850px; padding: 0;">
+            <button class="close-btn" data-close="product-details-modal" style="top:15px; right:20px;">×</button>
+            <div class="product-details-layout">
+                <!-- Video/Image Left Panel -->
+                <div class="product-media-panel">
+                    <div class="video-container">
+                        <img id="pd-image" src="" alt="Product Thumbnail">
+                        <div class="play-btn-overlay"><i class="fa-solid fa-play"></i></div>
+                        <div class="video-tag">Click to Watch Demo Safari</div>
+                    </div>
+                </div>
+                <!-- Details Right Panel -->
+                <div class="product-content-panel">
+                    <span class="badge-sm" id="pd-badge" style="margin-bottom: 15px;">Edition</span>
+                    <h2 id="pd-title" style="font-family: var(--font-heading); font-size: 26px; margin-bottom: 5px;">
+                        Product Name</h2>
+                    <div class="price" id="pd-price"
+                        style="font-size: 24px; font-weight: 700; color: #fff; margin-bottom: 20px;">Rp 0</div>
+
+                    <p class="muted" id="pd-desc" style="line-height: 1.6; margin-bottom: 25px; font-size: 14px;">
+                        Description placeholder...</p>
+
+                    <h4 style="color: #fff; margin-bottom: 12px; font-size: 14px;">Fitur Utama Termasuk:</h4>
+                    <ul class="feature-list" id="pd-features"
+                        style="margin-bottom: 30px; font-size: 13.5px; color: #cbd5e1; padding-left:0; list-style:none;">
+                        <!-- Injected via JS -->
+                    </ul>
+
+                    <button class="btn-glow order-btn" id="pd-order-btn" style="width: 100%;" onclick="">Pesan &
+                        Sintesis Kontrak AI</button>
+                    <p style="text-align: center; font-size: 12px; color: #64748b; margin-top: 15px;"><i
+                            class="fa-solid fa-shield-halved"></i> 100% IP Transfer. Escrow Protected.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Modal Overlay -->
+    <div class="modal-overlay hidden" id="auth-modal">
+        <div class="modal-card">
+            <button class="close-btn" data-close="auth-modal">×</button>
+            <h2 id="authTitle">Client Login</h2>
+            <p class="muted">Masuk untuk mengelola kontrak proyek RAG Anda.</p>
+
+            <form id="authForm" style="margin-top: 20px;">
+                <div class="input-group">
+                    <label>Email</label>
+                    <input type="email" id="authEmail" value="client@company.com" required>
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="authPassword" value="password123" required>
+                </div>
+                <input type="hidden" id="authRole" value="client">
+                <button type="submit" class="btn-glow" id="btnSubmitAuth">Masuk <i
+                        class="fa-solid fa-arrow-right-to-bracket"></i></button>
+            </form>
+            <div style="margin-top: 15px; text-align: center; font-size: 13px;">
+                <span class="muted">Simulasi: Cukup tekan tombol masuk. Menggunakan Mock ID: 1.</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHECKOUT / ORDERING VIEW -->
+    <div id="view-checkout" class="view-section hidden container">
+        <div class="dashboard-header">
+            <div>
+                <h2>Pemesanan & Kontrak Legal</h2>
+                <p class="muted">Selesaikan digital brief dan tandatangani kontrak kerja sama Anda.</p>
+            </div>
+            <button class="btn-glow secondary" onclick="switchView('view-client-order')"><i
+                    class="fa-solid fa-arrow-left"></i> Kembali</button>
+        </div>
+
+        <div class="checkout-steps"
+            style="background: rgba(11, 15, 25, 0.4); border-radius: 12px; margin-bottom: 20px;">
+            <div class="step active" id="indicator-1">1. AI Brief</div>
+            <div class="step" id="indicator-2">2. E-Sign</div>
+            <div class="step" id="indicator-3">3. Escrow</div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 24px;">
+            <!-- STEP 1: SUBMIT BRIEF -->
+            <section class="glass-panel" id="step1-card">
+                <h2>Deskripsi Arsitektur AI RAG</h2>
+                <p>Paket Terpilih: <strong id="selected-package-text" class="accent-text"></strong></p>
+
+                <form id="briefForm">
+                    <input type="hidden" id="projectId" value="1">
+                    <div class="input-group">
+                        <label>Nama Proyek / Aplikasi RAG Anda</label>
+                        <input type="text" id="projectName" placeholder="Misal: HR Document Bot Assistant" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Ceritakan Detail Data & Kebutuhan AI Perusahaan Anda</label>
+                        <textarea id="briefText" rows="4"
+                            placeholder="Perusahaan kami memiliki 10.000 dokumen SOP Internal (PDF) yang ingin bisa di-'tanya-jawab'-kan ke AI bot kami, tanpa ada data yang bocor keluar..."
+                            required></textarea>
+                        <span style="font-size:11px; color: var(--text-muted); margin-top:5px;"><i
+                                class="fa-solid fa-lock"></i> Deskripsi ini aman dan akan diinkorporasi otomatis
+                            oleh Agen LangGraph ke dalam klausa kontrak hukum Anda.</span>
+                    </div>
+                    <button type="submit" class="btn-glow" id="btnSubmitBrief">
+                        <span>Sintesis Kontrak Legal (AI Agent)</span>
+                        <div class="loader hidden" id="briefLoader"></div>
+                    </button>
+                </form>
+            </section>
+
+            <section class="glass-panel hidden" id="step2-card">
+                <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+                    <div>
+                        <h2>Penandatanganan Digital (E-Sign)</h2>
+                        <p class="muted">Agen AI Legal kami telah menyusun syarat pengerjaan dan klausul kontrak hukum.
+                        </p>
+                    </div>
+                    <button class="btn-glow secondary btn-sm" onclick="window.print()" style="margin-bottom:20px;"><i
+                            class="fa-solid fa-download"></i> Simpan PDF</button>
+                </div>
+
+                <div class="contract-box" style="min-height: 400px; max-height: 600px; font-size:14.5px;">
+                    <div class="contract-text" id="contractContent"></div>
+                </div>
+
+                <div class="hash-display">
+                    <label>Sidik Jari Dokumen (SHA-256 Mathematical Hash)</label>
+                    <code id="contractHashDisplay">Awaiting input...</code>
+                    <div class="verify-badge"><i class="fa-solid fa-shield-check"></i> Integritas Terenkripsi
+                        (Anti-Tamper)</div>
+                </div>
+
+                <button class="btn-glow success" id="btnSignContract">
+                    <span>Saya Setuju & Mengikat Tanda Tangan Digital</span>
+                </button>
+            </section>
+
+            <!-- STEP 3: ESCROW NOTIFICATION -->
+            <section class="glass-panel hidden" id="step3-card">
+                <div class="success-box">
+                    <div class="icon-circle"><i class="fa-solid fa-check"></i></div>
+                    <h2>Kontrak Berkekuatan Hukum!</h2>
+                    <h4 style="margin: 10px 0; color:var(--text-muted);">Status DB: <span id="finalStatus"
+                            style="color:white; font-family: monospace;">CONTRACT_SIGNED</span></h4>
+
+                    <div class="payment-simulation">
+                        <p style="margin-bottom:5px;">Amankan dana proyek Anda ke Escrow. Tim kami akan segera
+                            memulai pengembangan model AI Anda dan IP RAG akan diserahterimakan penuh di akhir
+                            pengerjaan.</p>
+                        <h2 style="font-family: var(--font-heading); margin:15px 0;">Tagihan: <span id="tagihan-display"
+                                class="accent-text"></span></h2>
+
+                        <hr style="border-color: rgba(255,255,255,0.05); margin: 20px 0;">
+
+                        <p class="muted" style="font-size:12px; margin-bottom:10px;"><i
+                                class="fa-brands fa-cc-stripe"></i> Midtrans Payment Gateway Simulation</p>
+                        <button class="btn-glow secondary" id="btnSimulatePayment" style="width:100%;">Debit Escrow
+                            Funds (Simulasi Webhook)</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- CUSTOM DIALOG MODAL (Confirm / Prompt) -->
+    <div class="modal-overlay hidden" id="custom-dialog" style="z-index: 2000;">
+        <div class="modal-card" style="text-align: center; max-width: 350px;">
+            <div class="icon-circle" id="dialogIcon"
+                style="margin: 0 auto 15px; width: 50px; height: 50px; font-size: 20px;"><i
+                    class="fa-solid fa-question"></i></div>
+            <h2 id="dialogTitle" style="font-size: 20px;">Konfirmasi</h2>
+            <p id="dialogMessage" class="muted" style="margin-bottom: 20px;">Apakah Anda yakin?</p>
+
+            <div id="dialogInputs" class="hidden" style="text-align: left; margin-bottom: 20px;">
+                <!-- Injected dynamically by JS -->
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button class="btn-glow secondary btn-sm" id="btnDialogCancel" style="flex: 1;">Batal</button>
+                <button class="btn-glow btn-sm" id="btnDialogConfirm" style="flex: 1;">Ya, Lanjutkan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATIONS -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
