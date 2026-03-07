@@ -1,0 +1,62 @@
+# ─── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ─── Virtual Environment ───────────────────────────────────────────────────────
+venv/
+env/
+.venv/
+.env.local
+
+# ─── Environment Variables (KEEP .env.example, IGNORE actual secrets) ─────────
+.env
+*.env
+
+# ─── Database ─────────────────────────────────────────────────────────────────
+*.db
+*.sqlite3
+*.sqlite
+
+# ─── Alembic ──────────────────────────────────────────────────────────────────
+# Keep migration scripts tracked, ignore local state file
+# alembic/versions/*.py  ← tracked intentionally
+
+# ─── Logs & Debug ─────────────────────────────────────────────────────────────
+*.log
+*.log.*
+logs/
+
+# ─── OS & IDE ─────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ─── Scratch / Temp Scripts ───────────────────────────────────────────────────
+rewrite.py
+seed_test_data.py
+migrate_revision.py
+
+# ─── Test / Coverage ──────────────────────────────────────────────────────────
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# ─── Node / Frontend (if ever used) ──────────────────────────────────────────
+node_modules/
+.npm/
+
+# ─── Build / Dist ─────────────────────────────────────────────────────────────
+/dist
+/build
