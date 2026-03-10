@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Agency Escrow API"
-    DATABASE_URL: str = "mysql+pymysql://root:password@localhost:3306/agency_db"
+    DATABASE_URL: str = "sqlite:///./agency_db.db"
     SECRET_KEY: str = "super_secret_jwt_key_here_please_change"
     ALGORITHM: str = "HS256"
     

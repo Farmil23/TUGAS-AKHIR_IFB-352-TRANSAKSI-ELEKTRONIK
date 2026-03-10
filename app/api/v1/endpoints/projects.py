@@ -112,7 +112,7 @@ def update_project_status(project_id: int, payload: ProjectStatusUpdate, db: Ses
     
     return {"message": "Status proyek berhasil diperbarui", "status": project.status.value}
 
-@router.get("/")
+@router.get("")
 def get_projects(client_id: int = None, db: Session = Depends(get_db)):
     """
     Get all projects. 

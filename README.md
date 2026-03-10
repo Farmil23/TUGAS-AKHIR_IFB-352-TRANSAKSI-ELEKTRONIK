@@ -197,6 +197,64 @@ Dana Escrow Dicairkan ke Developer ✅
 
 ---
 
+## 🚀 Deploy ke Vercel
+
+Proyek ini sudah siap deploy ke **Vercel** (gratis). Ikuti langkah berikut:
+
+### 1. Siapkan Database Cloud MySQL (WAJIB)
+
+Vercel tidak menyediakan MySQL, jadi kamu perlu database cloud. Pilih salah satu (semua **gratis**):
+
+| Layanan | Link | Keterangan |
+|---|---|---|
+| **PlanetScale** | [planetscale.com](https://planetscale.com) | MySQL serverless, gratis 5GB |
+| **Railway** | [railway.app](https://railway.app) | MySQL/PostgreSQL, gratis $5/bulan credit |
+| **Aiven** | [aiven.io](https://aiven.io) | MySQL gratis 30 hari |
+
+Setelah register dan buat database, kamu akan mendapatkan **connection string** seperti:
+```
+mysql+pymysql://user:password@host:port/database
+```
+
+### 2. Push ke GitHub
+
+```bash
+git add .
+git commit -m "chore: ready for Vercel deployment"
+git push origin main
+```
+
+### 3. Deploy di Vercel
+
+1. Buka **[vercel.com](https://vercel.com)** → Login dengan GitHub
+2. Klik **"Add New Project"**
+3. Pilih repository proyek ini dari daftar
+4. Klik **"Deploy"** _(Vercel otomatis mendeteksi `vercel.json`)_
+
+### 4. Tambahkan Environment Variables di Vercel
+
+Setelah deploy pertama, masuk ke:
+**Vercel Dashboard → Project → Settings → Environment Variables**
+
+Tambahkan variabel berikut:
+
+| Key | Value |
+|---|---|
+| `DATABASE_URL` | Connection string MySQL cloud kamu |
+| `SECRET_KEY` | String rahasia panjang (minimal 32 karakter) |
+
+### 5. Redeploy
+
+Setelah menambahkan env vars, klik **"Redeploy"** di Vercel Dashboard.
+
+> ⚠️ **Jangan lupa** jalankan `alembic upgrade head` di database cloud kamu sebelum atau sesudah pertama kali deploy:
+> ```bash
+> # Set DATABASE_URL ke cloud DB dulu, lalu:
+> alembic upgrade head
+> ```
+
+---
+
 ## 🤝 Kontribusi
 
 Pull requests sangat disambut! Untuk perubahan besar, buka *issue* terlebih dahulu untuk mendiskusikan apa yang ingin diubah.

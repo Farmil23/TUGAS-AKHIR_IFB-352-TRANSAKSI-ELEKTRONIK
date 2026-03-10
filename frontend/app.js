@@ -1,4 +1,7 @@
-const API_URL = "http://localhost:8000/api/v1";
+// Auto-detect API base URL: works on localhost AND on Vercel
+const API_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? `http://${window.location.host}/api/v1`
+    : `${window.location.origin}/api/v1`;
 
 // Global States
 let isAuth = false;
