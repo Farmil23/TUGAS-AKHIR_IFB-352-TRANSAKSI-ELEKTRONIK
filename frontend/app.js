@@ -3,10 +3,13 @@ const API_URL = window.location.hostname === "localhost" || window.location.host
     ? `http://${window.location.host}/api/v1`
     : `${window.location.origin}/api/v1`;
 
+console.log("Aura AI App initialized with API:", API_URL);
+
 // Global States
-let isAuth = false;
-let userRole = null; // 'client' or 'admin'
-let loggedUserId = 1; // Default mock ID
+let isAuth = !!localStorage.getItem("token");
+let userRole = localStorage.getItem("userRole"); // 'CLIENT' or 'ADMIN'
+let loggedUserId = localStorage.getItem("userId");
+let loggedUserName = localStorage.getItem("userName");
 let currentProjectId = null;
 let currentContractHash = null;
 let currentPackage = "";
@@ -16,6 +19,26 @@ let currentPrice = 0;
 let clientProjects = [];
 let auditLogs = []; // Global mock logs for admin
 
+// --- Auth Fetch Helper ---
+async function authFetch(url, options = {}) {
+    const token = localStorage.getItem("token");
+    const headers = {
+        ...options.headers,
+        "Authorization": `Bearer ${token}`
+    };
+    
+    const response = await fetch(url, { ...options, headers });
+    
+    if (response.status === 401) {
+        // Token expired or invalid
+        btnLogout.click();
+        showToast("Sesi habis, silakan login kembali.", "error");
+        throw new Error("Unauthorized");
+    }
+    
+    return response;
+}
+
 // Navigation Nodes
 const viewLanding = document.getElementById("view-landing");
 const viewClientDashboard = document.getElementById("view-client-dashboard");
@@ -23,10 +46,12 @@ const viewAdminDashboard = document.getElementById("view-admin-dashboard");
 const navDashboard = document.getElementById("nav-dashboard");
 const btnOpenLogin = document.getElementById("btnOpenLogin");
 const btnOpenAdmin = document.getElementById("btnOpenAdmin");
+const btnOpenRegister = document.getElementById("btnOpenRegister");
 const btnLogout = document.getElementById("btnLogout");
 
 // Modal Nodes
 const authModal = document.getElementById("auth-modal");
+const registerModal = document.getElementById("register-modal");
 const checkoutView = document.getElementById("view-checkout");
 
 // Step Nodes
@@ -145,10 +170,10 @@ function switchView(viewId) {
     viewLanding.classList.add("hidden");
     viewClientDashboard.classList.add("hidden");
     viewAdminDashboard.classList.add("hidden");
-    const orderView = document.getElementById("view-client-order");
-    if (orderView) orderView.classList.add("hidden");
-    const checkoutView = document.getElementById("view-checkout");
-    if (checkoutView) checkoutView.classList.add("hidden");
+    const ordView = document.getElementById("view-client-order");
+    if (ordView) ordView.classList.add("hidden");
+    const checkView = document.getElementById("view-checkout");
+    if (checkView) checkView.classList.add("hidden");
 
     document.getElementById(viewId).classList.remove("hidden");
 
@@ -160,17 +185,19 @@ function switchView(viewId) {
 
 function updateNavAuth() {
     if (isAuth) {
-        btnOpenLogin.classList.add("hidden");
-        btnOpenAdmin.classList.add("hidden");
-        btnLogout.classList.remove("hidden");
-        navDashboard.classList.remove("hidden");
+        if (btnOpenLogin) btnOpenLogin.classList.add("hidden");
+        if (btnOpenAdmin) btnOpenAdmin.classList.add("hidden");
+        if (btnOpenRegister) btnOpenRegister.classList.add("hidden");
+        if (btnLogout) btnLogout.classList.remove("hidden");
+        if (navDashboard) navDashboard.classList.remove("hidden");
         const navOrder = document.getElementById("nav-order");
-        if (navOrder && userRole === "client") navOrder.classList.remove("hidden");
+        if (navOrder && userRole === "CLIENT") navOrder.classList.remove("hidden");
     } else {
-        btnOpenLogin.classList.remove("hidden");
-        btnOpenAdmin.classList.remove("hidden");
-        btnLogout.classList.add("hidden");
-        navDashboard.classList.add("hidden");
+        if (btnOpenLogin) btnOpenLogin.classList.remove("hidden");
+        if (btnOpenAdmin) btnOpenAdmin.classList.remove("hidden");
+        if (btnOpenRegister) btnOpenRegister.classList.remove("hidden");
+        if (btnLogout) btnLogout.classList.add("hidden");
+        if (navDashboard) navDashboard.classList.add("hidden");
 
         const navOrder = document.getElementById("nav-order");
         if (navOrder) navOrder.classList.add("hidden");
@@ -179,8 +206,11 @@ function updateNavAuth() {
     }
 }
 
+document.getElementById("nav-services").addEventListener("click", () => switchView("view-landing"));
+document.getElementById("nav-workflow").addEventListener("click", () => switchView("view-landing"));
+
 navDashboard.addEventListener("click", () => {
-    if (userRole === "admin") {
+    if (userRole === "ADMIN") {
         switchView("view-admin-dashboard");
         renderAdminDashboard();
     } else {
@@ -192,7 +222,12 @@ navDashboard.addEventListener("click", () => {
 btnLogout.addEventListener("click", () => {
     isAuth = false;
     userRole = null;
+    localStorage.removeItem("token");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("userName");
     updateNavAuth();
+    showToast("Berhasil logout", "info");
 });
 
 // --- Modal Handlers ---
@@ -206,33 +241,143 @@ document.querySelectorAll(".close-btn").forEach(btn => {
 
 btnOpenLogin.addEventListener("click", () => {
     document.getElementById("authTitle").innerText = "Client Portal Login";
-    document.getElementById("authRole").value = "client";
+    authModal.classList.remove("hidden");
+});
+
+if (btnOpenRegister) {
+    btnOpenRegister.addEventListener("click", () => {
+        registerModal.classList.remove("hidden");
+    });
+}
+
+document.getElementById("linkToRegister").addEventListener("click", (e) => {
+    e.preventDefault();
+    authModal.classList.add("hidden");
+    registerModal.classList.remove("hidden");
+});
+
+document.getElementById("linkToLogin").addEventListener("click", (e) => {
+    e.preventDefault();
+    registerModal.classList.add("hidden");
     authModal.classList.remove("hidden");
 });
 
 btnOpenAdmin.addEventListener("click", () => {
     document.getElementById("authTitle").innerHTML = "<i class='fa-solid fa-shield-halved'></i> Admin Gateway";
-    document.getElementById("authRole").value = "admin";
     authModal.classList.remove("hidden");
 });
 
 // --- Auth Submission ---
-document.getElementById("authForm").addEventListener("submit", (e) => {
+document.getElementById("authForm").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const role = document.getElementById("authRole").value;
-    isAuth = true;
-    userRole = role;
+    const email = document.getElementById("authEmail").value;
+    const password = document.getElementById("authPassword").value;
+    const btn = document.getElementById("btnSubmitAuth");
+    
+    btn.disabled = true;
+    btn.innerHTML = `<div class="loader" style="width:16px; height:16px; display:inline-block;"></div> Memproses...`;
 
-    authModal.classList.add("hidden");
-    updateNavAuth();
+    try {
+        const formData = new FormData();
+        formData.append("username", email);
+        formData.append("password", password);
 
-    if (role === "admin") {
-        switchView("view-admin-dashboard");
-        renderAdminDashboard();
-    } else {
-        document.getElementById("clientNameDisplay").innerText = "PT. Maju Mundur";
-        switchView("view-client-dashboard");
-        renderClientDashboard();
+        const res = await fetch(`${API_URL}/auth/login`, {
+            method: "POST",
+            body: formData
+        });
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            try {
+                const errorData = JSON.parse(errorText);
+                throw new Error(errorData.detail || "Login gagal");
+            } catch (e) {
+                throw new Error(`Server Error: ${res.status} - ${errorText.substring(0, 50)}...`);
+            }
+        }
+
+        const data = await res.json();
+
+        localStorage.setItem("token", data.access_token);
+        
+        isAuth = true;
+        userRole = data.role; // Use role from server
+        localStorage.setItem("userRole", userRole);
+        
+        loggedUserId = data.user_id; 
+        loggedUserName = data.full_name;
+        localStorage.setItem("userId", loggedUserId);
+        localStorage.setItem("userName", loggedUserName);
+
+        authModal.classList.add("hidden");
+        updateNavAuth();
+        showToast("Login Berhasil!", "success");
+
+        if (userRole === "ADMIN") {
+            switchView("view-admin-dashboard");
+            renderAdminDashboard();
+        } else if (userRole === "CLIENT") {
+            if (document.getElementById("clientNameDisplay")) {
+                document.getElementById("clientNameDisplay").innerText = loggedUserName;
+            }
+            switchView("view-client-dashboard");
+            renderClientDashboard();
+        } else {
+            showToast("Role tidak dikenali.", "error");
+        }
+    } catch (err) {
+        showToast(err.message, "error");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = `Masuk <i class="fa-solid fa-arrow-right-to-bracket"></i>`;
+    }
+});
+
+// --- Register Submission ---
+document.getElementById("registerForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const fullName = document.getElementById("regFullName").value;
+    const email = document.getElementById("regEmail").value;
+    const password = document.getElementById("regPassword").value;
+    const btn = document.getElementById("btnSubmitRegister");
+
+    btn.disabled = true;
+    btn.innerHTML = `<div class="loader" style="width:16px; height:16px; display:inline-block;"></div> Mendaftarkan...`;
+
+    try {
+        const res = await fetch(`${API_URL}/auth/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                full_name: fullName,
+                email: email,
+                password: password,
+                role: "CLIENT"
+            })
+        });
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            try {
+                const errorData = JSON.parse(errorText);
+                throw new Error(errorData.detail || "Registrasi gagal");
+            } catch (e) {
+                throw new Error(`Server Error: ${res.status} - ${errorText.substring(0, 50)}...`);
+            }
+        }
+
+        const data = await res.json();
+
+        showToast("Akun berhasil dibuat! Silakan login.", "success");
+        registerModal.classList.add("hidden");
+        authModal.classList.remove("hidden");
+        document.getElementById("authEmail").value = email;
+    } catch (err) {
+        showToast(err.message, "error");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = `Daftar Sekarang <i class="fa-solid fa-user-plus"></i>`;
     }
 });
 
@@ -250,43 +395,65 @@ async function renderClientDashboard() {
     tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px;"><div class="loader" style="margin: 0 auto; border-color: var(--accent);"></div></td></tr>`;
 
     try {
-        const res = await fetch(`${API_URL}/projects?client_id=${loggedUserId}`);
+        const res = await authFetch(`${API_URL}/projects`);
         const projects = await res.json();
+        clientProjects = projects; // Update global cache
 
         // Update KPIs
         document.getElementById("client-total-projects").textContent = projects.length;
         const pendingCount = projects.filter(p => ['PENDING_CONTRACT', 'COMPLETED', 'REVISION_REQUESTED'].includes(p.status)).length;
         document.getElementById("client-pending-action").textContent = pendingCount;
 
-        // Mock Escrow Value (Asumsi rata-rata Rp 45.000.000 per Active Project)
-        const activeEscrowCount = projects.filter(p => p.status !== 'DRAFT').length;
-        document.getElementById("client-active-escrow").textContent = `Rp ${(activeEscrowCount * 45000000).toLocaleString('id-ID')}`;
+        // Calculate real escrow value
+        const escrowTotal = projects.reduce((sum, p) => {
+            const price = p.name.includes('Pro') ? 45000000 : 15000000;
+            return sum + (p.status !== 'DRAFT' ? price : 0);
+        }, 0);
+        document.getElementById("client-active-escrow").textContent = `Rp ${escrowTotal.toLocaleString('id-ID')}`;
 
         if (projects.length === 0) {
             tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 30px;" class="muted">Belum ada proyek aktif. Silakan buat proyek baru.</td></tr>`;
             return;
         }
 
-        tbody.innerHTML = projects.map(p => `
-        <tr>
-            <td>#${p.id}</td>
-            <td style="font-weight:600;">${p.name}</td>
-            <td>${getStatusTag(p.status)}</td>
-            <td>
-                ${p.deployment_link ? `<a href="${p.deployment_link}" target="_blank" class="accent-text"><i class="fa-solid fa-link"></i> Buka Aplikasi RAG</a>` : `<span class="muted"><i class="fa-solid fa-lock"></i> Menunggu...</span>`}
-            </td>
-            <td>
-                ${p.status === 'PENDING_CONTRACT'
-                ? `<button class="btn-glow btn-sm" onclick="resumeContract(${p.id})">Review & Sign</button>`
-                : p.status === 'COMPLETED'
-                    ? `<div style="display:flex; gap:10px;"><button class="btn-glow success btn-sm" onclick="acceptDelivery(${p.id})"><i class="fa-solid fa-check"></i> Accept App</button> <button class="btn-glow secondary btn-sm" onclick="requestRevision(${p.id}); return false;"><i class="fa-solid fa-rotate-left"></i> Ajukan Revisi</button></div>`
-                    : p.status === 'REVISION_REQUESTED'
-                        ? `<span class="muted"><i class="fa-solid fa-clock-rotate-left"></i> Sedang direvisi tim...</span>`
-                        : p.developer_notes ? `<span class="muted"><i class="fa-regular fa-message"></i> ${p.developer_notes}</span>` : `<button class="btn-glow secondary btn-sm" onclick="viewContract(${p.id})">Lihat Kontrak</button>`
+        tbody.innerHTML = projects.map(p => {
+            let actions = "";
+            if (p.status === 'PENDING_CONTRACT') {
+                actions = `<button class="btn-glow btn-sm" onclick="resumeContract(${p.id})">Review & Sign</button>`;
+            } else if (p.status === 'CONTRACT_SIGNED') {
+                actions = `
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn-glow success btn-sm" onclick="openPaymentModal(${p.id})"><i class="fa-solid fa-credit-card"></i> Bayar Escrow</button>
+                        <button class="btn-glow secondary btn-sm" onclick="printInvoiceById(${p.id})"><i class="fa-solid fa-file-invoice"></i> Inv</button>
+                    </div>`;
+            } else if (p.status === 'ESCROW_FUNDED') {
+                actions = `
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <span style="color:#10b981; font-size:12px; font-weight:600;"><i class="fa-solid fa-shield"></i> Escrow Aman</span>
+                        <button class="btn-glow secondary btn-sm" onclick="printReceiptById(${p.id})"><i class="fa-solid fa-receipt"></i> Kwitansi</button>
+                    </div>`;
+            } else if (p.status === 'COMPLETED') {
+                actions = `
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn-glow success btn-sm" onclick="acceptDelivery(${p.id})"><i class="fa-solid fa-check"></i> Accept</button>
+                        <button class="btn-glow secondary btn-sm" onclick="printReceiptById(${p.id})"><i class="fa-solid fa-receipt"></i> Kwitansi</button>
+                    </div>`;
+            } else {
+                actions = p.developer_notes ? `<span class="muted">${p.developer_notes}</span>` : `<button class="btn-glow secondary btn-sm" onclick="viewContract(${p.id})">Lihat Kontrak</button>`;
             }
-            </td>
-        </tr>
-    `).join('');
+
+            return `
+                <tr>
+                    <td>#${p.id}</td>
+                    <td style="font-weight:600;">${p.name}</td>
+                    <td>${getStatusTag(p.status)}</td>
+                    <td>
+                        ${p.deployment_link ? `<a href="${p.deployment_link}" target="_blank" class="accent-text"><i class="fa-solid fa-link"></i> Buka App</a>` : `<span class="muted"><i class="fa-solid fa-lock"></i> Menunggu...</span>`}
+                    </td>
+                    <td>${actions}</td>
+                </tr>
+            `;
+        }).join('');
     } catch (err) {
         tbody.innerHTML = `<tr><td colspan="5" class="muted">Failed to load projects: ${err.message}</td></tr>`;
     }
@@ -298,7 +465,7 @@ async function renderAdminDashboard() {
 
     try {
         // Fetch Projects for action buttons
-        const projRes = await fetch(`${API_URL}/projects`);
+        const projRes = await authFetch(`${API_URL}/projects`);
         const projects = await projRes.json();
 
         // Update Admin KPIs
@@ -312,7 +479,7 @@ async function renderAdminDashboard() {
 
         let allLogs = [];
         try {
-            const auditRes = await fetch(`${API_URL}/audit-logs`);
+            const auditRes = await authFetch(`${API_URL}/audit-logs`);
             allLogs = await auditRes.json();
         } catch (e) { } // Fallback if no logs
 
@@ -326,13 +493,18 @@ async function renderAdminDashboard() {
             <td>${p.name}</td>
             <td>${getStatusTag(p.status)}</td>
             <td>
-                ${p.status === 'ESCROW_FUNDED'
-                ? `<button class="btn-glow btn-sm admin" onclick="updateProjectStatus(${p.id}, 'IN_PROGRESS', false)"><i class="fa-solid fa-play"></i> Mulai Build AI</button>`
+                ${p.developer_notes && p.developer_notes.includes('AWAITING_PHYSICAL_PAYMENT') && p.status === 'CONTRACT_SIGNED'
+                ? `<button class="btn-glow warning btn-sm admin" style="background: #f59e0b; border-color: #f59e0b; color: white;" onclick="validatePhysicalPayment(${p.id}, '${p.developer_notes.split('|')[1].split(':')[1]}', '${p.developer_notes.split('URL:')[1]}')"><i class="fa-solid fa-money-bill-wave"></i> Validasi Tunai Rp ${p.developer_notes.split('|')[1].split(':')[1]}</button>`
+                : p.status === 'ESCROW_FUNDED'
+                ? `<div style="display:flex; flex-direction:column; gap:6px;">
+                    <button class="btn-glow btn-sm admin" onclick="updateProjectStatus(${p.id}, 'IN_PROGRESS', false)"><i class="fa-solid fa-play"></i> Mulai Build AI</button>
+                    <button class="btn-glow success btn-sm" style="background:#10b981;" onclick="updateProjectStatus(${p.id}, 'COMPLETED', true)"><i class="fa-solid fa-paper-plane"></i> Kirim Aplikasi Selesai</button>
+                   </div>`
                 : p.status === 'IN_PROGRESS'
                     ? `<button class="btn-glow success btn-sm" onclick="updateProjectStatus(${p.id}, 'COMPLETED', true)"><i class="fa-solid fa-paper-plane"></i> Delivered</button>`
-                    : p.status === 'REVISION_REQUESTED'
-                        ? `<button class="btn-glow secondary btn-sm" style="margin-bottom:8px; border-color:#ef4444; color:#ef4444;" onclick="viewRevisionNotes(${p.id}, '${(p.client_revision_notes || '').replace(/'/g, "\\'")}')"><i class="fa-solid fa-note-sticky"></i> Lihat Catatan Revisi</button><br><button class="btn-glow success btn-sm" onclick="updateProjectStatus(${p.id}, 'COMPLETED', true)"><i class="fa-solid fa-paper-plane"></i> Deliver Revision</button>`
-                        : `<span class="muted">No Actions</span>`
+                : p.status === 'REVISION_REQUESTED'
+                    ? `<button class="btn-glow secondary btn-sm" style="margin-bottom:8px; border-color:#ef4444; color:#ef4444;" onclick="viewRevisionNotes(${p.id}, '${(p.client_revision_notes || '').replace(/'/g, "\\'")}')"><i class="fa-solid fa-note-sticky"></i> Lihat Catatan Revisi</button><br><button class="btn-glow success btn-sm" onclick="updateProjectStatus(${p.id}, 'COMPLETED', true)"><i class="fa-solid fa-paper-plane"></i> Deliver Revision</button>`
+                : `<span class="muted">No Actions</span>`
             }
             </td>
         </tr>
@@ -374,7 +546,7 @@ async function updateProjectStatus(projectId, newStatus, isDeliveryPhase = false
     }
 
     try {
-        const res = await fetch(`${API_URL}/projects/${projectId}/status`, {
+        const res = await authFetch(`${API_URL}/projects/${projectId}/status`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
@@ -383,7 +555,7 @@ async function updateProjectStatus(projectId, newStatus, isDeliveryPhase = false
         if (!res.ok) throw new Error(await res.text());
 
         // Refresh Current View
-        if (userRole === "admin") renderAdminDashboard();
+        if (userRole === "ADMIN") renderAdminDashboard();
         else renderClientDashboard();
 
         showToast(`Berhasil update proyek #${projectId} ke status ${newStatus}`, 'success');
@@ -392,6 +564,36 @@ async function updateProjectStatus(projectId, newStatus, isDeliveryPhase = false
         showToast("Gagal update status: " + err.message, 'error');
     }
 }
+
+async function validatePhysicalPayment(projectId, nominal, url) {
+    const isConfirmed = await showCustomDialog({
+        title: "Validasi Pembayaran Fisik",
+        message: `Klien telah menyetorkan uang tunai yang terdeteksi AI sebesar <b>${nominal}</b>.<br>
+                  <img src="${url}" style="width:100%; max-height:200px; object-fit:contain; background:#f1f5f9; border-radius:8px; margin: 15px 0;">
+                  <br>Apakah Anda memvalidasi penerimaan fisik ini dan ingin mengubah statusnya menjadi ESCROW_FUNDED?`,
+        type: 'confirm'
+    });
+
+    if (!isConfirmed) return;
+
+    try {
+        const payload = { new_status: 'ESCROW_FUNDED', developer_notes: "Validated by Admin" };
+        const res = await authFetch(`${API_URL}/projects/${projectId}/status`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) throw new Error(await res.text());
+
+        renderAdminDashboard();
+        showToast(`Berhasil memvalidasi pembayaran fisik untuk proyek #${projectId}`, 'success');
+
+    } catch (err) {
+        showToast("Gagal memvalidasi: " + err.message, 'error');
+    }
+}
+
 
 async function acceptDelivery(projectId) {
     // Dipanggil oleh Client Dashboard
@@ -417,7 +619,7 @@ async function requestRevision(projectId) {
             client_revision_notes: promptResult[0]
         };
 
-        const res = await fetch(`${API_URL}/projects/${projectId}/status`, {
+        const res = await authFetch(`${API_URL}/projects/${projectId}/status`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
@@ -443,7 +645,7 @@ function viewRevisionNotes(projectId, notes) {
 
 // --- E-COMMERCE SHOP / CATALOG LOGIC ---
 const productCatalog = {
-    'Knowledge Bot': {
+    'Knowledge Bot (Basic)': {
         title: 'Knowledge Bot',
         badge: 'Basic',
         badgeClass: '',
@@ -529,12 +731,13 @@ function openProductDetails(productId) {
 }
 
 function openCheckout(packageTitle) {
-    if (!isAuth || userRole !== 'client') {
+    if (!isAuth || userRole !== 'CLIENT') {
         showToast("Pendirian Sistem AI Membutuhkan Akun Korporat. Silakan Login.", "error");
         btnOpenLogin.click();
         return;
     }
 
+    currentProjectId = null; // Reset for new order
     currentPackage = packageTitle;
     currentPrice = currentPackage.includes('Pro') ? 45000000 : 15000000;
 
@@ -597,7 +800,7 @@ document.getElementById("briefForm").addEventListener("submit", async (e) => {
             client_brief: fullBrief
         };
 
-        const res = await fetch(`${API_URL}/projects/submit-brief`, {
+        const res = await authFetch(`${API_URL}/projects/submit-brief`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
@@ -629,47 +832,59 @@ document.getElementById("briefForm").addEventListener("submit", async (e) => {
 async function fetchGeneratedContract() {
     const briefRaw = document.getElementById("briefText").value;
     const today = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
-
     const draftText = `
-        <div style="font-family: 'Georgia', serif; color: #1e293b; background: #ffffff; padding: 40px 50px; text-align: justify; line-height: 1.9; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; max-width: 800px; margin: 0 auto; overflow-wrap: break-word;">
-            <div style="text-align: center; margin-bottom: 35px; border-bottom: 3px solid #0f172a; padding-bottom: 25px;">
-                <p style="font-size: 11px; color: #64748b; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px;">DOKUMEN PERJANJIAN KERJASAMA RESMI</p>
-                <h1 style="font-size: 20px; color: #0f172a; margin-bottom: 12px; font-family: 'Arial', sans-serif; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 900; line-height: 1.4;">PERJANJIAN KERJASAMA PENGEMBANGAN SISTEM<br>RETRIEVAL-AUGMENTED GENERATION (RAG)</h1>
-                <p style="font-size: 13px; color: #475569; font-weight: 700; font-family: monospace;">Nomor: AURA/RAG/${new Date().getFullYear()}/${currentProjectId}</p>
+        <div class="contract-inner-document">
+            <div class="contract-header-doc">
+                <p class="doc-label">DOKUMEN PERJANJIAN KERJASAMA RESMI</p>
+                <h1 class="doc-title">PERJANJIAN KERJASAMA PENGEMBANGAN SISTEM<br>RETRIEVAL-AUGMENTED GENERATION (RAG)</h1>
+                <p class="doc-number">Nomor: AURA/RAG/${new Date().getFullYear()}/${currentProjectId || 1}</p>
             </div>
             
-            <p style="margin-bottom: 20px; font-size: 14.5px;">Pada hari ini, tanggal <strong>${today}</strong>, dibuat dan ditandatangani perjanjian secara kriptografik (selanjutnya disebut <em>"Perjanjian"</em>) antara para pihak berikut:</p>
+            <p class="doc-intro">Pada hari ini, tanggal <strong>${today}</strong>, dibuat dan ditandatangani perjanjian secara kriptografik (selanjutnya disebut <em>"Perjanjian"</em>) antara para pihak berikut:</p>
             
-            <table style="width: 100%; margin-bottom: 30px; border-collapse: collapse; border: 1px solid #e2e8f0; font-size: 14px;">
-                <tr style="background: #f8fafc;">
-                    <td style="padding: 12px 15px; width: 100px; vertical-align: top; border: 1px solid #e2e8f0; font-weight: 700; color: #475569; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Pihak I</td>
-                    <td style="padding: 12px 15px; vertical-align: top; border: 1px solid #e2e8f0;"><strong>PT. AURA AI LABS</strong> &mdash; sebagai Pihak Pertama (Pengembang)</td>
+            <table class="doc-parties-table">
+                <tr>
+                    <td class="party-col">Pihak I</td>
+                    <td><strong>PT. AURA AI LABS</strong> &mdash; sebagai Pihak Pertama (Pengembang)</td>
                 </tr>
                 <tr>
-                    <td style="padding: 12px 15px; width: 100px; vertical-align: top; border: 1px solid #e2e8f0; font-weight: 700; color: #475569; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Pihak II</td>
-                    <td style="padding: 12px 15px; vertical-align: top; border: 1px solid #e2e8f0;"><strong>PT. MAJU MUNDUR</strong> &mdash; sebagai Pihak Kedua (Pengguna Jasa / Klien)</td>
+                    <td class="party-col">Pihak II</td>
+                    <td><strong>PT. MAJU MUNDUR</strong> &mdash; sebagai Pihak Kedua (Pengguna Jasa / Klien)</td>
                 </tr>
             </table>
             
-            <h2 style="font-size: 14px; color: #0f172a; margin-top: 30px; border-bottom: 2px solid #cbd5e1; padding-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; font-family: Arial, sans-serif;">Pasal 1 &mdash; Ruang Lingkup Kerja</h2>
-            <p style="font-size: 14.5px;">PIHAK PERTAMA sepakat untuk merancang, mengimplementasikan, dan melakukan <em>deployment</em> Sistem AI RAG dengan paket: <strong style="color: #1d4ed8;">${currentPackage}</strong>. Sistem dirancang khusus untuk memenuhi ekstraksi data sebagaimana dijabarkan pada brief berikut:</p>
-            <div style="background: #eff6ff; padding: 15px 20px; border-left: 5px solid #2563eb; font-style: italic; margin: 15px 0; color: #1e40af; border-radius: 0 6px 6px 0; font-size: 14px;">
+            <h2 class="doc-pasal">Pasal 1 &mdash; Ruang Lingkup Kerja</h2>
+            <p>PIHAK PERTAMA sepakat untuk merancang, mengimplementasikan, dan melakukan <em>deployment</em> Sistem AI RAG dengan paket: <strong class="doc-highlight">${currentPackage}</strong>. Sistem dirancang khusus untuk memenuhi ekstraksi data sebagaimana dijabarkan pada brief berikut:</p>
+            <div class="doc-brief-box">
                 &ldquo;${briefRaw}&rdquo;
             </div>
             
-            <h2 style="font-size: 14px; color: #0f172a; margin-top: 30px; border-bottom: 2px solid #cbd5e1; padding-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; font-family: Arial, sans-serif;">Pasal 2 &mdash; Keamanan Data &amp; Zero Leak Policy</h2>
-            <p style="font-size: 14.5px;">Seluruh basis data, dokumen PDF/Word, dan parameter SQL yang diproses (<em>"Corpus"</em>) akan dikelola melalui infrastruktur terisolasi sepenuhnya di lingkungan <em>on-premise</em> atau <em>private cloud</em> milik klien. Algoritma menggunakan model <em>Large Language Models</em> (Llama / Mistral) yang di-<em>host</em> secara privat. PIHAK PERTAMA bertanggung jawab mutlak atas setiap kebocoran data ke <em>public cloud</em> pihak ketiga.</p>
+            <h2 class="doc-pasal">Pasal 2 &mdash; Keamanan Data &amp; Zero Leak Policy</h2>
+            <p>Seluruh basis data, dokumen PDF/Word, dan parameter SQL yang diproses (<em>"Corpus"</em>) akan dikelola melalui infrastruktur terisolasi sepenuhnya di lingkungan <em>on-premise</em> atau <em>private cloud</em> milik klien. Algoritma menggunakan model <em>Large Language Models</em> (Llama / Mistral) yang di-<em>host</em> secara privat. PIHAK PERTAMA bertanggung jawab mutlak atas setiap kebocoran data ke <em>public cloud</em> pihak ketiga.</p>
             
-            <h2 style="font-size: 14px; color: #0f172a; margin-top: 30px; border-bottom: 2px solid #cbd5e1; padding-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; font-family: Arial, sans-serif;">Pasal 3 &mdash; Penahanan Dana (Escrow) dan Pembayaran</h2>
-            <p style="font-size: 14.5px;">Pembayaran senilai <strong style="color: #1d4ed8;">Rp ${currentPrice.toLocaleString('id-ID')}</strong> diikat menggunakan skema penahanan keamanan (<em>Escrow Webhook</em>). Pengembangan sistem RAG tidak akan dimulai sebelum Dana Escrow terverifikasi oleh sistem. PIHAK KEDUA berhak menolak hasil penyelesaian bila tidak sesuai <em>brief</em> yang disepakati, dan berhak mengajukan revisi.</p>
+            <h2 class="doc-pasal">Pasal 3 &mdash; Penahanan Dana (Escrow) dan Pembayaran</h2>
+            <p>Pembayaran senilai <strong class="doc-highlight">Rp ${currentPrice.toLocaleString('id-ID')}</strong> diikat menggunakan skema penahanan keamanan (<em>Escrow Webhook</em>). Pengembangan sistem RAG tidak akan dimulai sebelum Dana Escrow terverifikasi oleh sistem. PIHAK KEDUA berhak menolak hasil penyelesaian bila tidak sesuai <em>brief</em> yang disepakati, dan berhak mengajukan revisi.</p>
+            <h2 class="doc-pasal">Pasal 4 &mdash; Kepemilikan Hak Kekayaan Intelektual (HAKI)</h2>
+            <p>Kecuali komponen Open Source (LangChain, LangGraph, ChromaDB), seluruh Source Code, skema basis data Vektor, API Endpoints, dan parameter yang dipersonalisasi sepenuhnya beralih kepemilikannya (100% IP Transfer) ke PIHAK KEDUA setelah sistem diserahkan dan diterima (Delivered & Accepted).</p>
 
-            <h2 style="font-size: 14px; color: #0f172a; margin-top: 30px; border-bottom: 2px solid #cbd5e1; padding-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; font-family: Arial, sans-serif;">Pasal 4 &mdash; Kepemilikan Hak Kekayaan Intelektual (HAKI)</h2>
-            <p style="font-size: 14.5px;">Kecuali komponen Open Source (LangChain, LangGraph, ChromaDB), seluruh <em>Source Code</em>, skema basis data Vektor, API <em>Endpoints</em>, dan parameter yang dipersonalisasi sepenuhnya beralih kepemilikannya (100% IP Transfer) ke PIHAK KEDUA setelah sistem diserahkan dan diterima (<em>Delivered &amp; Accepted</em>).</p>
-
-            <div style="margin-top: 50px; padding-top: 20px; border-top: 2px dashed #cbd5e1; text-align: center;">
+            <div style="margin-top: 50px; padding-top: 20px; border-top: 2px dashed #cbd5e1; text-align: center; position: relative;">
                 <p style="color: #2563eb; font-size: 13px; font-weight: 700; font-family: monospace;">&#128274; Dokumen ini dibuat dan dilindungi secara hukum menggunakan tanda tangan Hash Kriptografik SHA-256.</p>
+                
+                ${(function() {
+                    const p = clientProjects.find(x => x.id === currentProjectId);
+                    if (p && p.status === 'FULLY_PAID') {
+                        return `
+                            <div style="position: absolute; top: -30px; right: 20px; border: 4px double #10b981; color: #10b981; padding: 10px 20px; transform: rotate(-15deg); font-weight: 900; font-size: 20px; background: rgba(16, 185, 129, 0.05); pointer-events: none;">
+                                PROJECT COMPLETED<br>
+                                <span style="font-size: 12px;">ASSET TRANSFERRED & ACCEPTED</span>
+                            </div>
+                        `;
+                    }
+                    return "";
+                })()}
             </div>
-        </div>`;
+        </div>
+    `;
 
     document.getElementById("contractContent").innerHTML = draftText;
 
@@ -697,7 +912,7 @@ async function fetchGeneratedContract() {
 
 async function fetchContractFromServer(projectId) {
     try {
-        const res = await fetch(`${API_URL}/projects/${projectId}/contract`);
+        const res = await authFetch(`${API_URL}/projects/${projectId}/contract`);
         if (!res.ok) throw new Error("Gagal mengambil histori kontrak");
         const data = await res.json();
 
@@ -777,7 +992,7 @@ document.getElementById("btnSignContract").addEventListener("click", async () =>
             client_contract_hash: currentContractHash
         };
 
-        const res = await fetch(`${API_URL}/contracts/accept-contract`, {
+        const res = await authFetch(`${API_URL}/contracts/accept-contract`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
@@ -803,65 +1018,397 @@ document.getElementById("btnSignContract").addEventListener("click", async () =>
     }
 });
 
-// STEP 3: PAYMENT
+// STEP 3: PAYMENT — Stripe Checkout Integration
 document.getElementById("btnSimulatePayment").addEventListener("click", async () => {
     const btn = document.getElementById("btnSimulatePayment");
+    const statusInfo = document.getElementById("paymentStatusInfo");
+    
     btn.disabled = true;
-    btn.textContent = "Mengirim Webhook Enkripsi Midtrans...";
+    btn.innerHTML = `<div class="loader" style="display:inline-block; width:16px; height:16px; border-width:2px; vertical-align:middle;"></div> <span style="vertical-align:middle;">Menghubungkan ke Stripe...</span>`;
+    if (statusInfo) statusInfo.textContent = "";
 
     try {
-        const orderId = `PROJ-${currentProjectId}-MIL-1`;
-        const statusCode = "settlement";
-        const amount = currentPrice.toFixed(2);
-        const serverKey = "SB-Mid-server-YOUR_SERVER_KEY";
-
-        // Local HMAC SHA-512 Generator for Gateway bypass simulation
-        const payloadStr = `${orderId}${statusCode}${amount}${serverKey}`;
-        const encoder = new TextEncoder();
-        const data = encoder.encode(payloadStr);
-        const hashBuffer = await crypto.subtle.digest('SHA-512', data);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        const signatureKey = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
-        const webhookPayload = {
-            transaction_id: `MDTRNS_${Date.now()}`,
-            order_id: orderId,
-            gross_amount: currentPrice,
-            payment_type: "bca_va",
-            transaction_status: "settlement",
-            signature_key: signatureKey,
-            fraud_status: "accept"
-        };
-
-        const res = await fetch(`${API_URL}/payments/webhook`, {
+        // 1. Minta Checkout Session dari Backend
+        const res = await authFetch(`${API_URL}/payments/checkout`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(webhookPayload)
+            body: JSON.stringify({
+                project_id: parseInt(currentProjectId),
+                client_name: loggedUserName
+            })
         });
 
-        if (!res.ok) throw new Error(await res.text());
+        const data = await res.json();
 
-        // Update Dashboard
-        clientProjects[0].status = "ESCROW_FUNDED";
-        auditLogs.unshift({ time: "Baru saja", pid: currentProjectId, action: "PAYMENT_SETTLED_ESCROW_FUNDED", state: "ESCROW_FUNDED", ip: "Gateway IP" });
+        if (!res.ok) {
+            throw new Error(data.detail || "Gagal membuat sesi Stripe. Cek kunci di backend.");
+        }
 
-        // UI Transition Finale
-        document.getElementById("finalStatus").textContent = "ESCROW_FUNDED";
-        document.getElementById("finalStatus").style.color = "var(--success)";
-        btn.textContent = "Verifikasi Webhook Berhasil. Proyek Aktif!";
-        btn.className = "btn-glow success";
+        if (!data.url) throw new Error("URL Pembayaran tidak diterima dari server.");
 
-        // Refresh Dashboard tables in background
-        if (isAuth && userRole === "client") renderClientDashboard();
-
+        // 2. Redirect ke Stripe hosted Checkout
+        showToast("Mengarahkan ke pembayaran aman Stripe...", "info");
         setTimeout(() => {
-            switchView("view-client-dashboard");
-            window.scrollTo(0, 0);
-        }, 3000);
+            window.location.href = data.url;
+        }, 800);
 
     } catch (err) {
-        showToast("Gateway Webhook Error: " + err.message, 'error');
+        showToast("Stripe Error: " + err.message, "error");
         btn.disabled = false;
-        btn.textContent = "Debit Escrow Funds (Simulasi Webhook)";
+        btn.innerHTML = `<i class="fa-solid fa-shield-halved"></i> Bayar Sekarang via Stripe`;
     }
 });
+
+// Tambahkan Handler untuk menangani kembalinya user dari Stripe (Success/Cancel)
+window.addEventListener('load', async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const paymentStatus = urlParams.get('payment');
+    const projectId = urlParams.get('project_id');
+
+    if (paymentStatus === 'success' && projectId) {
+        showToast("Menverifikasi pembayaran...", "info");
+        
+        try {
+            // Panggil backend untuk update status di DB
+            const res = await authFetch(`${API_URL}/payments/verify-session?project_id=${projectId}`);
+            const data = await res.json();
+            
+            if (res.ok) {
+                showToast("Pembayaran Berhasil! Dana Escrow Anda telah diamankan.", "success");
+                // Hapus query params agar tidak muncul berulang saat refresh
+                window.history.replaceState({}, document.title, window.location.pathname);
+                
+                // Berpindah ke dashboard client dan muat ulang data
+                currentProjectId = projectId;
+                await renderClientDashboard();
+                switchView("view-client-dashboard");
+            } else {
+                showToast("Gagal memverifikasi: " + data.detail, "error");
+            }
+        } catch (err) {
+            console.error("Verification Error:", err);
+            showToast("Terjadi kesalahan saat verifikasi.", "error");
+        }
+    } else if (paymentStatus === 'cancel') {
+        showToast("Pembayaran dibatalkan. Dana belum didepositkan.", "info");
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+});
+
+// PHYSICAL PAYMENT UPLOAD
+const fileInput = document.getElementById('physicalPaymentFile');
+if (fileInput) {
+    fileInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const btn = document.getElementById("btnPhysicalPayment");
+        const resultDiv = document.getElementById("physicalPaymentResult");
+        
+        btn.disabled = true;
+        btn.innerHTML = `<div class="loader" style="border-top-color:transparent; display:inline-block; vertical-align:middle; width:15px; height:15px; border-width:2px;"></div> <span style="vertical-align:middle;">Mendeteksi Nominal AI...</span>`;
+        resultDiv.textContent = "";
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+            const res = await authFetch(`${API_URL}/payments/upload-physical?project_id=${currentProjectId}`, {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await res.json();
+            
+            if (res.ok && data.status === "success") {
+                resultDiv.style.color = "#10b981";
+                resultDiv.innerHTML = `<i class="fa-solid fa-check"></i> ${data.message}<br><span class="muted" style="color:#94a3b8">${data.instructions}</span>`;
+                
+                document.getElementById("finalStatus").textContent = "AWAITING_ADMIN_VALIDATION";
+                document.getElementById("finalStatus").style.color = "#f59e0b";
+                
+                // Refresh Dashboard tables in background
+                if (isAuth && userRole === "client") renderClientDashboard();
+                
+                setTimeout(() => {
+                    switchView("view-client-dashboard");
+                    window.scrollTo(0, 0);
+                }, 4000);
+            } else {
+                resultDiv.style.color = "#ef4444";
+                resultDiv.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${data.message || data.detail}`;
+            }
+        } catch (err) {
+            resultDiv.style.color = "#ef4444";
+            resultDiv.innerHTML = `<i class="fa-solid fa-xmark"></i> Koneksi ke AI backend gagal: ${err.message}`;
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fa-solid fa-camera"></i> Scan Bukti Pembayaran Tunai`;
+            fileInput.value = ""; // reset
+        }
+    });
+}
+
+// --- Initial Startup ---
+async function resumeContract(projectId) {
+    currentProjectId = projectId;
+    const p = clientProjects.find(x => x.id === projectId);
+    if (p) {
+        currentPackage = p.name;
+        currentPrice = p.name.includes('Pro') ? 45000000 : 15000000;
+    }
+    
+    // checkoutView is an overlay, no need to switch away from dashboard
+    checkoutView.classList.remove("hidden");
+    showStep(2);
+    document.getElementById("btnSignContract").classList.remove("hidden");
+    fetchGeneratedContract();
+}
+
+async function viewContract(projectId) {
+    currentProjectId = projectId;
+    checkoutView.classList.remove("hidden");
+    showStep(2);
+    // Hide sign button for already signed/processed contracts
+    document.getElementById("btnSignContract").classList.add("hidden");
+    fetchGeneratedContract();
+}
+
+async function openPaymentModal(projectId) {
+    currentProjectId = projectId;
+    const p = clientProjects.find(x => x.id === projectId);
+    if (p) {
+        currentPackage = p.name;
+        currentPrice = p.name.includes('Pro') ? 45000000 : 15000000;
+    }
+    checkoutView.classList.remove("hidden");
+    showStep(3);
+}
+
+function showStep(stepNum) {
+    step1.classList.add("hidden");
+    step2.classList.add("hidden");
+    step3.classList.add("hidden");
+    ind1.classList.remove("active");
+    ind2.classList.remove("active");
+    ind3.classList.remove("active");
+
+    if (stepNum === 1) { step1.classList.remove("hidden"); ind1.classList.add("active"); }
+    if (stepNum === 2) { step2.classList.remove("hidden"); ind2.classList.add("active"); }
+    if (stepNum === 3) { step3.classList.remove("hidden"); ind3.classList.add("active"); }
+}
+
+async function initApp() {
+    if (isAuth) {
+        updateNavAuth();
+        
+        // Recovery if role is missing
+        if (!userRole) {
+            try {
+                const res = await authFetch(`${API_URL}/auth/me`);
+                const data = await res.json();
+                userRole = data.role;
+                localStorage.setItem("userRole", userRole);
+                localStorage.setItem("userName", data.full_name);
+            } catch (e) {
+                console.error("Session recovery failed:", e);
+                btnLogout.click();
+                return;
+            }
+        }
+
+        if (userRole === "ADMIN") {
+            switchView("view-admin-dashboard");
+            renderAdminDashboard();
+        } else {
+            if (document.getElementById("clientNameDisplay")) {
+                document.getElementById("clientNameDisplay").innerText = localStorage.getItem("userName") || "Klien";
+            }
+            switchView("view-client-dashboard");
+            renderClientDashboard();
+        }
+    } else {
+        updateNavAuth();
+    }
+}
+
+initApp();
+
+function printContract() {
+    const content = document.getElementById("contractContent").innerHTML;
+    const hash = document.querySelector(".hash-display") ? document.querySelector(".hash-display").outerHTML : "";
+    
+    openPrintWindow("Kontrak Perjanjian", content + hash);
+}
+
+function printInvoiceById(id) {
+    const p = clientProjects.find(x => x.id === id);
+    if (!p) return;
+    
+    const invoiceHtml = `
+        <div style="border: 1px solid #000; padding: 40px;">
+            <div style="display:flex; justify-content:space-between; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 30px;">
+                <h1 style="margin:0;">INVOICE</h1>
+                <div style="text-align:right;">
+                    <p style="margin:0; font-weight:bold;">Aura AI Labs</p>
+                    <p style="margin:0; font-size:12px;">invoice@auraai.com</p>
+                </div>
+            </div>
+            
+            <table style="width:100%; margin-bottom: 30px;">
+                <tr>
+                    <td><strong>Bill To:</strong><br>${loggedUserName}<br>Client ID: ${loggedUserId}</td>
+                    <td style="text-align:right;"><strong>Invoice #:</strong> INV/AURA/${id}<br><strong>Date:</strong> ${new Date().toLocaleDateString('id-ID')}</td>
+                </tr>
+            </table>
+            
+            <table style="width:100%; border-collapse: collapse; margin-bottom: 30px;">
+                <thead>
+                    <tr style="background:#eee;">
+                        <th style="border:1px solid #000; padding:10px; text-align:left;">Description</th>
+                        <th style="border:1px solid #000; padding:10px; text-align:right;">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="border:1px solid #000; padding:10px;">Pengembangan Sistem AI: ${p.name}</td>
+                        <td style="border:1px solid #000; padding:10px; text-align:right;">Rp 15.000.000</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div style="text-align:right; font-size:18px; font-weight:bold;">Total Tagihan: Rp 15.000.000</div>
+            
+            <div style="margin-top:50px; border-top: 1px dashed #ccc; padding-top:20px; font-size:12px; color:#666;">
+                *Invoice ini diterbitkan secara otomatis oleh sistem Aura AI Labs. Status: <strong>BELUM DIBAYAR</strong>
+            </div>
+        </div>
+    `;
+    openPrintWindow("Invoice", invoiceHtml);
+}
+
+function terbilang(nominal) {
+    const bilangan = ["", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh", "Sebelas"];
+    let temp = "";
+    if (nominal < 12) {
+        temp = " " + bilangan[nominal];
+    } else if (nominal < 20) {
+        temp = terbilang(nominal - 10) + " Belas";
+    } else if (nominal < 100) {
+        temp = terbilang(Math.floor(nominal / 10)) + " Puluh" + terbilang(nominal % 10);
+    } else if (nominal < 200) {
+        temp = " Seratus" + terbilang(nominal - 100);
+    } else if (nominal < 1000) {
+        temp = terbilang(Math.floor(nominal / 100)) + " Ratus" + terbilang(nominal % 100);
+    } else if (nominal < 2000) {
+        temp = " Seribu" + terbilang(nominal - 1000);
+    } else if (nominal < 1000000) {
+        temp = terbilang(Math.floor(nominal / 1000)) + " Ribu" + terbilang(nominal % 1000);
+    } else if (nominal < 1000000000) {
+        temp = terbilang(Math.floor(nominal / 1000000)) + " Juta" + terbilang(nominal % 1000000);
+    }
+    return temp;
+}
+
+function printReceiptById(id) {
+    const p = clientProjects.find(x => x.id === id);
+    if (!p) return;
+    
+    const price = p.name.includes('Pro') ? 45000000 : 15000000;
+    const terbilangText = terbilang(price) + " Rupiah";
+
+    const receiptHtml = `
+        <div style="border: 4px double #000; padding: 40px; background: #fff; max-width: 800px; margin: auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 20px;">
+                <div>
+                    <h1 style="margin:0; color: #000; font-size: 28px;">AURA AI LABS</h1>
+                    <p style="margin:0; font-size: 12px;">The Future of Agentic RAG Systems</p>
+                </div>
+                <div style="text-align:right;">
+                    <h2 style="margin:0; letter-spacing:2px;">KWITANSI</h2>
+                    <p style="margin:0; font-family:monospace; font-weight:bold;">No: REC/AURA/${id}/${new Date().getFullYear()}</p>
+                </div>
+            </div>
+            
+            <div style="font-size:16px; line-height:2.5;">
+                <div style="display:flex; border-bottom: 1px dotted #ccc;">
+                    <div style="width:200px;">Telah terima dari</div>
+                    <div style="flex:1; font-weight:bold; text-transform:uppercase;">: ${loggedUserName}</div>
+                </div>
+                <div style="display:flex; border-bottom: 1px dotted #ccc;">
+                    <div style="width:200px;">Uang sejumlah</div>
+                    <div style="flex:1; font-style:italic; background:#f0f0f0; padding-left:10px;">: ### ${terbilangText.toUpperCase()} ###</div>
+                </div>
+                <div style="display:flex; border-bottom: 1px dotted #ccc;">
+                    <div style="width:200px;">Untuk pembayaran</div>
+                    <div style="flex:1;">: Pengembangan Sistem AI - <strong>${p.name}</strong></div>
+                </div>
+                <div style="display:flex;">
+                    <div style="width:200px;">Status Dana</div>
+                    <div style="flex:1; color:#10b981; font-weight:bold;">: TERVERIFIKASI & DIAMANKAN DI ESCROW</div>
+                </div>
+            </div>
+            
+            <div style="display:flex; justify-content:space-between; margin-top:50px; align-items:flex-end;">
+                <div style="border: 3px solid #000; padding: 15px 40px; font-size:28px; font-weight:bold; background:#eee; position:relative;">
+                    <span style="font-size:16px; position:absolute; top:5px; left:10px;">Rp</span>
+                    ${price.toLocaleString('id-ID')} ,-
+                </div>
+                
+                <div style="text-align:center; width:250px;">
+                    <p style="margin:0;">Bandung, ${new Date().toLocaleDateString('id-ID')}</p>
+                    <div style="height:80px; position:relative;">
+                        <div style="position:absolute; top:10px; left:50%; transform:translateX(-50%); border: 2px solid #10b981; color:#10b981; padding:5px; border-radius:5px; font-size:10px; transform: rotate(-15deg); opacity:0.6; font-weight:bold;">
+                            ELECTRONICALLY VERIFIED<br>AURA AI FINANCE
+                        </div>
+                    </div>
+                    <p style="margin:0; font-weight:bold; text-decoration:underline;">SITI AISYAH, S.T.</p>
+                    <p style="margin:0; font-size:11px;">Head of Finance Aura AI Labs</p>
+                </div>
+            </div>
+
+            <div style="margin-top:40px; font-size:10px; color:#666; border-top: 1px solid #eee; padding-top:10px;">
+                * Kwitansi ini sah dan diterbitkan secara elektronik. Seluruh transaksi dicatat dalam Immutable Audit Log perusahaan.
+                <br>Nomor Hash Referensi: ${p.hash || 'GEN-SHA256-AUTO'}
+            </div>
+        </div>
+    `;
+    openPrintWindow("Kwitansi Resmi", receiptHtml);
+}
+
+function openPrintWindow(title, htmlContent) {
+    const printWindow = window.open('', '_blank', 'width=800,height=900');
+    printWindow.document.write(`
+        <html>
+            <head>
+                <title>${title}</title>
+                <style>
+                    body { font-family: 'Times New Roman', serif; padding: 50px; line-height: 1.6; color: #000; }
+                    .contract-inner-document { text-align: justify; }
+                    .contract-header-doc { text-align: center; border-bottom: 2px solid #000; margin-bottom: 30px; padding-bottom: 20px; }
+                    .doc-label { font-size: 10pt; color: #666; text-transform: uppercase; margin-bottom: 5px; }
+                    .doc-title { font-size: 16pt; font-weight: bold; margin-bottom: 10px; }
+                    .doc-number { font-size: 11pt; font-family: monospace; font-weight: bold; }
+                    .doc-parties-table { width: 100%; border-collapse: collapse; border: 1px solid #000; margin: 20px 0; }
+                    .doc-parties-table td { padding: 10px; border: 1px solid #000; vertical-align: top; font-size: 11pt; }
+                    .party-col { width: 100px; font-weight: bold; background: #eee; }
+                    .doc-pasal { font-size: 12pt; font-weight: bold; border-bottom: 1px solid #ccc; margin-top: 25px; padding-bottom: 5px; text-transform: uppercase; }
+                    .doc-highlight { font-weight: bold; color: #000; }
+                    .doc-brief-box { background: #f9f9f9; padding: 15px; border-left: 4px solid #000; font-style: italic; margin: 15px 0; }
+                    .hash-display { margin-top: 50px; border: 1px solid #000; padding: 15px; font-size: 10pt; background: #f0f0f0; }
+                    .hash-display code { display: block; word-break: break-all; margin-top: 10px; font-family: monospace; }
+                </style>
+            </head>
+            <body>
+                ${htmlContent}
+                <script>
+                    window.onload = function() {
+                        window.print();
+                        window.onafterprint = function() { window.close(); };
+                    };
+                </script>
+            </body>
+        </html>
+    `);
+    printWindow.document.close();
+}

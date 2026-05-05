@@ -6,7 +6,8 @@ from app.models.project import Project, ProjectState
 from app.models.contract import DigitalContract
 from app.schemas.contract_schema import ContractAcceptRequest
 from app.services.audit_service import write_audit_log
-from app.api.dependencies import get_db, get_current_user_id
+from app.api.dependencies import get_db, get_current_user
+from app.models.user import User
 
 router = APIRouter()
 
@@ -15,7 +16,7 @@ async def accept_digital_contract(
     payload: ContractAcceptRequest,
     request: Request,
     db: Session = Depends(get_db),
-    user_id: int = Depends(get_current_user_id)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Endpoint saat Klien menekan tombol "Saya Setuju & Tanda Tangani" pada UI platform Anda.
@@ -25,6 +26,9 @@ async def accept_digital_contract(
     
     if not project:
         raise HTTPException(status_code=404, detail="Proyek tidak ditemukan")
+    
+    if project.client_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Hanya pemilik yang bisa menandatangani kontrak")
         
     contract = project.contract
     if not contract:
@@ -61,7 +65,7 @@ async def accept_digital_contract(
     write_audit_log(
         db=db,
         project_id=project.id,
-        user_id=user_id,
+        user_id=current_user.id,
         action="CONTRACT_DIGITALLY_SIGNED",
         ip_address=client_ip,
         prev_state=previous_state,

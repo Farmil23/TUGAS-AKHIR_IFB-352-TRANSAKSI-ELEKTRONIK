@@ -29,6 +29,7 @@
             <!-- Login Button -->
             <button class="btn-glow secondary btn-sm" id="btnOpenLogin"><i class="fa-regular fa-user"></i> Client
                 Login</button>
+            <button class="btn-glow secondary btn-sm" id="btnOpenRegister"><i class="fa-solid fa-user-plus"></i> Register</button>
             <button class="btn-glow admin btn-sm" id="btnOpenAdmin"><i class="fa-solid fa-shield-halved"></i>
                 Admin</button>
             <div class="status-badge" id="appStatus" style="display: none;">API</div>
@@ -155,7 +156,7 @@
             </div>
 
             <div class="cards-wrapper">
-                <div class="service-card">
+                <div class="service-card" onclick="openProductDetails('Knowledge Bot (Basic)')">
                     <h3>Knowledge Bot <span>(Basic)</span></h3>
                     <p class="price">Rp 15.000.000</p>
                     <ul>
@@ -163,9 +164,9 @@
                         <li><i class="fa-solid fa-check"></i> LangChain & Vector DB (Chroma)</li>
                         <li><i class="fa-solid fa-check"></i> Maksimal 100 Dokumen</li>
                     </ul>
-                    <button class="btn-glow order-btn" data-package="Knowledge Bot (Basic)">Pesan & Mulai Brief</button>
+                    <button class="btn-glow order-btn">Pesan & Mulai Brief</button>
                 </div>
-                <div class="service-card premium">
+                <div class="service-card premium" onclick="openProductDetails('Enterprise RAG (Pro)')">
                     <div class="badge">Enterprise Ready</div>
                     <h3>Enterprise RAG <span>(Pro)</span></h3>
                     <p class="price">Rp 45.000.000</p>
@@ -175,7 +176,7 @@
                         <li><i class="fa-solid fa-check"></i> Orkestrasi Agentic (LangGraph)</li>
                         <li><i class="fa-solid fa-check"></i> Immutable Audit & Keamanan Kripto</li>
                     </ul>
-                    <button class="btn-glow order-btn" data-package="Enterprise RAG (Pro)">Pesan & Mulai Brief</button>
+                    <button class="btn-glow order-btn">Pesan & Mulai Brief</button>
                     <div class="glow-effect"></div>
                 </div>
             </div>
@@ -455,18 +456,46 @@
             <form id="authForm" style="margin-top: 20px;">
                 <div class="input-group">
                     <label>Email</label>
-                    <input type="email" id="authEmail" value="client@company.com" required>
+                    <input type="email" id="authEmail" placeholder="email@company.com" required>
                 </div>
                 <div class="input-group">
                     <label>Password</label>
-                    <input type="password" id="authPassword" value="password123" required>
+                    <input type="password" id="authPassword" placeholder="Your password" required>
                 </div>
-                <input type="hidden" id="authRole" value="client">
                 <button type="submit" class="btn-glow" id="btnSubmitAuth">Masuk <i
                         class="fa-solid fa-arrow-right-to-bracket"></i></button>
             </form>
             <div style="margin-top: 15px; text-align: center; font-size: 13px;">
-                <span class="muted">Simulasi: Cukup tekan tombol masuk. Menggunakan Mock ID: 1.</span>
+                <p class="muted">Belum punya akun? <a href="#" id="linkToRegister" style="color: var(--accent);">Daftar di sini</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Modal Overlay -->
+    <div class="modal-overlay hidden" id="register-modal">
+        <div class="modal-card">
+            <button class="close-btn" data-close="register-modal">×</button>
+            <h2>Create Account</h2>
+            <p class="muted">Daftar untuk mulai membangun sistem RAG AI Anda.</p>
+
+            <form id="registerForm" style="margin-top: 20px;">
+                <div class="input-group">
+                    <label>Full Name</label>
+                    <input type="text" id="regFullName" placeholder="John Doe" required>
+                </div>
+                <div class="input-group">
+                    <label>Email</label>
+                    <input type="email" id="regEmail" placeholder="john@company.com" required>
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="regPassword" placeholder="Min. 8 characters" required>
+                </div>
+                <button type="submit" class="btn-glow" id="btnSubmitRegister">Daftar Sekarang <i
+                        class="fa-solid fa-user-plus"></i></button>
+            </form>
+            <div style="margin-top: 15px; text-align: center; font-size: 13px;">
+                <p class="muted">Sudah punya akun? <a href="#" id="linkToLogin" style="color: var(--accent);">Login di sini</a></p>
             </div>
         </div>
     </div>
@@ -524,7 +553,7 @@
                         <p class="muted">Agen AI Legal kami telah menyusun syarat pengerjaan dan klausul kontrak hukum.
                         </p>
                     </div>
-                    <button class="btn-glow secondary btn-sm" onclick="window.print()" style="margin-bottom:20px;"><i
+                    <button class="btn-glow secondary btn-sm" onclick="printContract()" style="margin-bottom:20px;"><i
                             class="fa-solid fa-download"></i> Simpan PDF</button>
                 </div>
 
@@ -561,10 +590,27 @@
 
                         <hr style="border-color: rgba(255,255,255,0.05); margin: 20px 0;">
 
-                        <p class="muted" style="font-size:12px; margin-bottom:10px;"><i
-                                class="fa-brands fa-cc-stripe"></i> Midtrans Payment Gateway Simulation</p>
-                        <button class="btn-glow secondary" id="btnSimulatePayment" style="width:100%;">Debit Escrow
-                            Funds (Simulasi Webhook)</button>
+                        <p class="muted" style="font-size:12px; margin-bottom:10px;"><i class="fa-brands fa-stripe"></i> Stripe Secure Checkout (Worldwide Payment)</p>
+                        
+                        <!-- Metode Pembayaran Badge -->
+                        <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:15px; justify-content:center;">
+                            <span style="background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.3); color:#60a5fa; border-radius:6px; padding:4px 10px; font-size:11px; font-weight:600;"><i class="fa-solid fa-credit-card"></i> Visa / Mastercard</span>
+                            <span style="background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.3); color:#10b981; border-radius:6px; padding:4px 10px; font-size:11px; font-weight:600;"><i class="fa-solid fa-credit-card"></i> Debit Card</span>
+                            <span style="background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.3); color:#fbbf24; border-radius:6px; padding:4px 10px; font-size:11px; font-weight:600;"><i class="fa-brands fa-apple-pay"></i> Apple Pay</span>
+                            <span style="background:rgba(168,85,247,0.15); border:1px solid rgba(168,85,247,0.3); color:#c084fc; border-radius:6px; padding:4px 10px; font-size:11px; font-weight:600;"><i class="fa-brands fa-google-pay"></i> Google Pay</span>
+                        </div>
+
+                        <button class="btn-glow" id="btnSimulatePayment" style="width:100%;">
+                            <i class="fa-solid fa-shield-halved"></i> Bayar Sekarang via Stripe
+                        </button>
+                        <div id="paymentStatusInfo" style="margin-top: 10px; font-size: 12px; text-align: center; color: #64748b;"></div>
+
+                        <hr style="border-color: rgba(255,255,255,0.05); margin: 20px 0;">
+
+                        <p class="muted" style="font-size:12px; margin-bottom:10px;"><i class="fa-solid fa-money-bill-wave"></i> Pembayaran Tunai (Auto-Deteksi AI)</p>
+                        <input type="file" id="physicalPaymentFile" accept="image/*,video/*" capture="environment" style="display: none;">
+                        <button class="btn-glow secondary" id="btnPhysicalPayment" style="width:100%; border: 1px solid #10b981; color: #10b981;" onclick="document.getElementById('physicalPaymentFile').click()"><i class="fa-solid fa-camera"></i> Scan Bukti Pembayaran Tunai</button>
+                        <div id="physicalPaymentResult" style="margin-top: 10px; font-size: 13px; text-align: center;"></div>
                     </div>
                 </div>
             </section>
@@ -594,7 +640,7 @@
     <!-- TOAST NOTIFICATIONS -->
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="app.js"></script>
+    <script src="app.js?v=1.3"></script>
 </body>
 
 </html>

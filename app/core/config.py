@@ -8,6 +8,9 @@ class Settings(BaseSettings):
     
     PAYMENT_SERVER_KEY: str = "SB-Mid-server-YOUR_SERVER_KEY"
     PAYMENT_CLIENT_KEY: str = "SB-Mid-client-YOUR_CLIENT_KEY"
+    
+    STRIPE_KEY: str = "" # pk_test_... (Stripe Public Key)
+    STRIPE_SECRET_KEY: str = "" # sk_test_... (Stripe Secret Key)
 
     class Config:
         env_file = ".env"

@@ -1,6 +1,6 @@
 import enum
 from datetime import datetime, timezone
-from sqlalchemy import Column, Integer, String, Enum, DateTime
+from sqlalchemy import Column, Integer, String, Enum, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 
 from app.models.base import Base
@@ -20,7 +20,7 @@ class Project(Base):
     __tablename__ = 'projects'
     
     id = Column(Integer, primary_key=True, index=True)
-    client_id = Column(Integer, index=True, nullable=False) # FK to User Table
+    client_id = Column(Integer, ForeignKey("users.id"), index=True, nullable=False)
     name = Column(String(255), nullable=False)
     status = Column(Enum(ProjectState), default=ProjectState.DRAFT, nullable=False)
     
@@ -34,3 +34,4 @@ class Project(Base):
     # OOP Relations
     contract = relationship("DigitalContract", back_populates="project", uselist=False, cascade="all, delete-orphan")
     audit_logs = relationship("AuditLog", back_populates="project", cascade="all, delete-orphan", order_by="AuditLog.created_at")
+    client = relationship("User", back_populates="projects")

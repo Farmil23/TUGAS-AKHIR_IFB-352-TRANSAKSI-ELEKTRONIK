@@ -6,7 +6,8 @@ from app.models.project import Project, ProjectState
 from app.models.contract import DigitalContract
 from app.services.ai_contract_agent import generate_contract_for_project
 from app.services.contract_service import generate_contract_hash
-from app.api.dependencies import get_db
+from app.api.dependencies import get_db, get_current_user
+from app.models.user import User, UserRole
 
 router = APIRouter()
 
@@ -49,7 +50,8 @@ def generate_and_save_contract_task(project_id: int, client_brief: str, db: Sess
 async def submit_project_brief(
     payload: BriefSubmissionRequest,
     background_tasks: BackgroundTasks,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """
     Endpoint saat Klien men-submit requirement/brief dari Landing Page.
@@ -58,7 +60,7 @@ async def submit_project_brief(
     """
     # 1. Otomatis buat Proyek Baru di DB
     new_project = Project(
-        client_id=payload.client_id,
+        client_id=current_user.id,
         name=payload.project_name or f"AI RAG System Development",
         status=ProjectState.DRAFT
     )
@@ -113,15 +115,17 @@ def update_project_status(project_id: int, payload: ProjectStatusUpdate, db: Ses
     return {"message": "Status proyek berhasil diperbarui", "status": project.status.value}
 
 @router.get("")
-def get_projects(client_id: int = None, db: Session = Depends(get_db)):
+def get_projects(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """
     Get all projects. 
     If client_id is provided, filters for that specific client (Client Dashboard).
     If no client_id, returns all projects (Admin Dashboard).
     """
     query = db.query(Project)
-    if client_id is not None:
-        query = query.filter(Project.client_id == client_id)
+    
+    # If not admin, only show own projects
+    if current_user.role != UserRole.ADMIN:
+        query = query.filter(Project.client_id == current_user.id)
         
     projects = query.order_by(Project.created_at.desc()).all()
     

@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from app.api.v1.endpoints import contracts, payments, projects, audit
+from app.api.v1.endpoints import contracts, payments, projects, audit, auth
 import os
 
 app = FastAPI(
@@ -25,6 +25,7 @@ app.include_router(projects.router, prefix="/api/v1/projects", tags=["Project & 
 app.include_router(contracts.router, prefix="/api/v1/contracts", tags=["Digital Contracts"])
 app.include_router(payments.router, prefix="/api/v1/payments", tags=["Payment Webhooks"])
 app.include_router(audit.router, prefix="/api/v1/audit-logs", tags=["Audit Log"])
+app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
 
 # Serve static frontend files (styles.css, app.js, etc.)
 frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")

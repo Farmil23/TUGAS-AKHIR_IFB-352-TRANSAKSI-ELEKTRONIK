@@ -1,266 +1,82 @@
-# 🤖 Aura AI Labs — Electronic Transaction Platform
+# 🌌 Aura AI Labs - Enterprise RAG & E-Transaction Platform
 
-> Platform pemesanan jasa pengembangan sistem **Retrieval-Augmented Generation (RAG)** berbasis AI, dilengkapi dengan e-contract digital, sistem escrow, dan immutable audit log.
+![Status](https://img.shields.io/badge/Status-Operational-success)
+![Version](https://img.shields.io/badge/Version-2.0.0-blue)
+![Security](https://img.shields.io/badge/Security-SHA--256-blueviolet)
 
----
-
-## ✨ Fitur Utama
-
-| Fitur | Keterangan |
-|---|---|
-| 🛍️ **Katalog Layanan** | Tampilan e-commerce lengkap dengan detail produk, harga, dan demo |
-| 📝 **AI Contract Generator** | Kontrak hukum dibuat otomatis oleh AI Agent (LangGraph) dari brief klien |
-| 🔐 **Digital Signature** | Penandatanganan kontrak menggunakan hash SHA-256 (anti-tamper) |
-| 💰 **Escrow System** | Dana klien ditahan di escrow sampai pengerjaan selesai & diterima |
-| 🔄 **Revision Flow** | Klien bisa mengajukan revisi sebelum menyetujui hasil pekerjaan |
-| 📋 **Immutable Audit Log** | Setiap aksi terekam permanen untuk kebutuhan hukum & dispute |
-| 🛡️ **Admin Dashboard** | Panel kontrol developer untuk mengelola seluruh project pipeline |
+**Aura AI Labs** adalah platform mutakhir yang merekayasa sistem **Retrieval-Augmented Generation (RAG)** khusus untuk kebutuhan korporat. Aplikasi ini mengintegrasikan seluruh siklus transaksi elektronik secara legal, mulai dari penandatanganan kontrak digital hingga pengelolaan dana *Escrow*.
 
 ---
 
-## 🛠️ Tech Stack
+## 💎 Fitur Unggulan
 
-- **Backend:** FastAPI (Python), SQLAlchemy ORM, Alembic (migrations)
-- **Database:** MySQL
-- **AI Agent:** LangGraph (workflow agent untuk pembuatan kontrak)
-- **Frontend:** Vanilla HTML/CSS/JS (Single Page Application)
-- **Security:** SHA-256 hash-based integrity verification
+### 1. Smart E-Contract & Legal Tech
+- **AI-Powered Contract Synthesis**: Dokumen hukum dihasilkan secara dinamis berdasarkan brief proyek.
+- **Cryptographic Signature**: Penandatanganan kontrak dilindungi oleh hash SHA-256 yang menjamin integritas dokumen (Immutable).
+- **Project Completion Seal**: Kontrak akan otomatis mendapatkan stempel "COMPLETED" setelah serah terima aset disetujui.
 
----
+### 2. Transaction Management (IPO Model)
+- **Input**: Interface briefing yang intuitif untuk mendefinisikan parameter sistem AI.
+- **Process**: Sistem pembayaran terintegrasi (Stripe) dengan fitur penahanan dana (Escrow).
+- **Output**: Dashboard deployment, log audit yang transparan, dan bukti administrasi sah.
 
-## 📋 Prasyarat
-
-Pastikan berikut ini sudah terinstall di komputer Anda:
-
-- ✅ **Python 3.9+**
-- ✅ **MySQL Server** (bisa menggunakan XAMPP, WAMP, atau MySQL Community Server)
-- ✅ **Git**
+### 3. Professional Documentation Engine
+- **Automated Invoice Generator**: Penerbitan invoice penagihan resmi secara instan.
+- **Detailed Receipt System**: Kwitansi pembayaran dengan sistem "Terbilang" otomatis (Bahasa Indonesia) dan stempel verifikasi keuangan.
 
 ---
 
-## 🚀 Cara Menjalankan (Setup Lokal)
-
-### 1. Clone Repositori
-
-```bash
-git clone https://github.com/<username>/<repo-name>.git
-cd <repo-name>
-```
-
-### 2. Buat & Aktifkan Virtual Environment
-
-```bash
-# Windows
-python -m venv venv
-venv\Scripts\activate
-
-# Linux / macOS
-python3 -m venv venv
-source venv/bin/activate
-```
-
-### 3. Install Semua Dependency
-
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Setup Environment Variables
-
-Buat file `.env` di folder root proyek (salin dari contoh di bawah):
-
-```env
-# .env
-DATABASE_URL=mysql+pymysql://root:password@localhost:3306/agency_db
-SECRET_KEY=ganti_dengan_string_rahasia_yang_panjang
-```
-
-> ⚠️ Ganti `root` dan `password` sesuai konfigurasi MySQL Anda.
-
-### 5. Buat Database MySQL
-
-Masuk ke MySQL dan jalankan perintah berikut:
-
-```sql
-CREATE DATABASE agency_db;
-```
-
-### 6. Jalankan Migrasi Database (Alembic)
-
-Perintah ini akan membuat semua tabel yang diperlukan secara otomatis:
-
-```bash
-alembic upgrade head
-```
-
-> Jika ini pertama kali dan belum ada file migrasi:
-> ```bash
-> alembic revision --autogenerate -m "Initial schema"
-> alembic upgrade head
-> ```
-
-### 7. Jalankan Server
-
-```bash
-uvicorn app.main:app --reload
-```
-
-Server akan aktif di: **[http://localhost:8000](http://localhost:8000)**
+## 🛠️ Arsitektur Teknologi
+- **Backend**: [FastAPI](https://fastapi.tiangolo.com/) (Python) - Performa tinggi & Asynchronous.
+- **Database**: [SQLAlchemy](https://www.sqlalchemy.org/) dengan SQLite/PostgreSQL - Relasional & Terstruktur.
+- **Frontend**: Vanilla JS & CSS3 - Desain **Glassmorphism** premium tanpa library berat.
+- **Security**: Kriptografi tingkat tinggi untuk proteksi kontrak dan sesi pengguna.
 
 ---
 
-## 🖥️ Mengakses Aplikasi
+## 🚀 Panduan Instalasi
 
-| URL | Keterangan |
-|---|---|
-| [http://localhost:8000](http://localhost:8000) | **Frontend** — Halaman utama / Landing Page |
-| [http://localhost:8000/docs](http://localhost:8000/docs) | **Swagger UI** — Dokumentasi & Testing API |
-| [http://localhost:8000/redoc](http://localhost:8000/redoc) | **ReDoc** — Dokumentasi API alternatif |
+1. **Clone & Setup Environment**:
+   ```bash
+   git clone <repository-url>
+   cd project-2
+   python -m venv venv
+   source venv/bin/activate  # venv\Scripts\activate untuk Windows
+   ```
 
----
+2. **Install Dependensi**:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-## 👤 Akun Demo
+3. **Inisialisasi Database & Seed Admin**:
+   ```bash
+   python seed_admin.py
+   ```
 
-Untuk login tanpa registrasi (mode simulasi):
-
-| Role | Cara Login |
-|---|---|
-| **Client** | Klik tombol `Client Login` di navbar |
-| **Admin** | Klik tombol `Admin Gateway` di navbar |
-
-> Di mode simulasi, cukup tekan tombol "Masuk" — tidak diperlukan username/password asli.
-
----
-
-## 📁 Struktur Proyek
-
-```
-📦 Project Root
- ├── 📁 app/
- │   ├── 📁 api/v1/endpoints/    # Route handlers (projects, contracts, payments, audit)
- │   ├── 📁 core/                # Database, config, security
- │   ├── 📁 models/              # SQLAlchemy ORM models
- │   ├── 📁 schemas/             # Pydantic schemas
- │   ├── 📁 services/            # Business logic (AI agent, contract, payment)
- │   └── main.py                 # Entry point FastAPI app
- ├── 📁 alembic/                 # Database migration scripts
- ├── 📁 frontend/
- │   ├── index.html              # Single Page Application
- │   ├── app.js                  # Frontend logic & API calls
- │   └── styles.css              # UI styles
- ├── .env                        # Environment variables (JANGAN di-commit!)
- ├── .gitignore
- ├── alembic.ini
- ├── requirements.txt
- └── README.md
-```
+4. **Jalankan Aplikasi**:
+   ```bash
+   uvicorn app.main:app --reload
+   ```
 
 ---
 
-## 🔌 API Endpoints
+## 📈 Alur Penggunaan (End-to-End)
 
-| Method | Endpoint | Keterangan |
-|---|---|---|
-| `POST` | `/api/v1/projects/submit-brief` | Submit brief klien & generate kontrak AI |
-| `GET` | `/api/v1/projects/` | List semua proyek |
-| `GET` | `/api/v1/projects/{id}/contract` | Ambil kontrak untuk proyek tertentu |
-| `PUT` | `/api/v1/projects/{id}/status` | Update status proyek (Admin) |
-| `POST` | `/api/v1/contracts/accept-contract` | Tanda tangan digital oleh klien |
-| `POST` | `/api/v1/payments/webhook` | Simulasi webhook konfirmasi pembayaran escrow |
-| `GET` | `/api/v1/audit-logs` | Ambil semua immutable audit log |
-
----
-
-## ⚙️ Alur Transaksi
-
-```
-Klien Submit Brief
-      │
-      ▼
-AI LangGraph Agent → Generate Kontrak HTML
-      │
-      ▼
-Klien Review & Tanda Tangan Digital (SHA-256 Hash)
-      │
-      ▼
-Bayar ke Escrow → Webhook Konfirmasi
-      │
-      ▼
-Admin Mulai Build AI (IN_PROGRESS)
-      │
-      ▼
-Admin Deliver → Klien Accept / Revisi
-      │
-      ▼
-Dana Escrow Dicairkan ke Developer ✅
-```
+| Tahapan | Aksi Pengguna | Hasil Output |
+| :--- | :--- | :--- |
+| **Pemesanan** | Pilih paket (Basic/Pro) & Isi Brief | Draft Proyek tersimpan di DB |
+| **Legalitas** | Tanda tangan digital di modal Kontrak | Hash SHA-256 terbentuk |
+| **Penagihan** | Klik tombol "Invoice" di Dashboard | Dokumen Invoice (PDF/Print) |
+| **Pembayaran** | Bayar via Stripe atau Upload Bukti | Status: ESCROW_FUNDED |
+| **Pengerjaan** | Admin memproses & mengirim link aplikasi | Status: IN_PROGRESS / COMPLETED |
+| **Penyelesaian** | Client klik "Accept Delivery" | Kontrak dicap "COMPLETED" & Kwitansi terbit |
 
 ---
 
-## 🚀 Deploy ke Vercel
-
-Proyek ini sudah siap deploy ke **Vercel** (gratis). Ikuti langkah berikut:
-
-### 1. Siapkan Database Cloud MySQL (WAJIB)
-
-Vercel tidak menyediakan MySQL, jadi kamu perlu database cloud. Pilih salah satu (semua **gratis**):
-
-| Layanan | Link | Keterangan |
-|---|---|---|
-| **PlanetScale** | [planetscale.com](https://planetscale.com) | MySQL serverless, gratis 5GB |
-| **Railway** | [railway.app](https://railway.app) | MySQL/PostgreSQL, gratis $5/bulan credit |
-| **Aiven** | [aiven.io](https://aiven.io) | MySQL gratis 30 hari |
-
-Setelah register dan buat database, kamu akan mendapatkan **connection string** seperti:
-```
-mysql+pymysql://user:password@host:port/database
-```
-
-### 2. Push ke GitHub
-
-```bash
-git add .
-git commit -m "chore: ready for Vercel deployment"
-git push origin main
-```
-
-### 3. Deploy di Vercel
-
-1. Buka **[vercel.com](https://vercel.com)** → Login dengan GitHub
-2. Klik **"Add New Project"**
-3. Pilih repository proyek ini dari daftar
-4. Klik **"Deploy"** _(Vercel otomatis mendeteksi `vercel.json`)_
-
-### 4. Tambahkan Environment Variables di Vercel
-
-Setelah deploy pertama, masuk ke:
-**Vercel Dashboard → Project → Settings → Environment Variables**
-
-Tambahkan variabel berikut:
-
-| Key | Value |
-|---|---|
-| `DATABASE_URL` | Connection string MySQL cloud kamu |
-| `SECRET_KEY` | String rahasia panjang (minimal 32 karakter) |
-
-### 5. Redeploy
-
-Setelah menambahkan env vars, klik **"Redeploy"** di Vercel Dashboard.
-
-> ⚠️ **Jangan lupa** jalankan `alembic upgrade head` di database cloud kamu sebelum atau sesudah pertama kali deploy:
-> ```bash
-> # Set DATABASE_URL ke cloud DB dulu, lalu:
-> alembic upgrade head
-> ```
+## 🔒 Kebijakan Keamanan Data (Zero Leak)
+Seluruh dokumen dan parameter SQL yang diproses dikelola melalui infrastruktur terisolasi. Aura AI Labs menjamin bahwa tidak ada data sensitif perusahaan yang dikirim ke cloud publik pihak ketiga tanpa enkripsi tingkat tinggi.
 
 ---
-
-## 🤝 Kontribusi
-
-Pull requests sangat disambut! Untuk perubahan besar, buka *issue* terlebih dahulu untuk mendiskusikan apa yang ingin diubah.
-
----
-
-## 📄 Lisensi
-
-Proyek ini dibuat untuk keperluan akademik mata kuliah **Transaksi Elektronik** — ITENAS.
+&copy; 2026 **PT. Aura AI Labs**. All rights reserved.
+*"Bridging Corporate Knowledge with Intelligence."*

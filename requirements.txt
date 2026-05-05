@@ -7,3 +7,13 @@ pymysql
 cryptography
 langgraph
 alembic
+opencv-python-headless
+numpy
+python-multipart
+stripe
+requests
+cv2
+passlib[bcrypt]
+python-jose[cryptography]
+email-validator
+bcrypt
