@@ -96,7 +96,7 @@ async def create_payment_checkout(
         gross_amount = 60_000_000
         # price_id = "price_CUSTOM_ID_ANDA"
     else:
-        gross_amount = 15_000_000
+        gross_amount = 10_000_000
         # Gunakan Price ID yang berkaitan dengan Product prod_UIZckXJFE2yICZ
         
 

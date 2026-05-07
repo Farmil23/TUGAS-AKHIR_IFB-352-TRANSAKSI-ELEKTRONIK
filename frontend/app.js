@@ -64,7 +64,7 @@ const ind3 = document.getElementById("indicator-3");
 
 // Add initial seed mock data so dashboard isn't completely empty
 clientProjects = [
-    { id: 101, name: "AI RAG Document Analyzer", status: "ESCROW_FUNDED", hash: "6b7c9716c5921f3d8..." }
+    { id: 101, name: "Website Static", status: "ESCROW_FUNDED", hash: "6b7c9716c5921f3d8..." }
 ];
 auditLogs = [
     { time: "2 Menit lalu", pid: 101, action: "PAYMENT_SETTLED", state: "ESCROW_FUNDED", ip: "Gateway" },
@@ -406,7 +406,7 @@ async function renderClientDashboard() {
 
         // Calculate real escrow value
         const escrowTotal = projects.reduce((sum, p) => {
-            const price = p.name.includes('Pro') ? 45000000 : 15000000;
+            const price = p.name.includes('Enterprise RAG') ? 45000000 : 100000;
             return sum + (p.status !== 'DRAFT' ? price : 0);
         }, 0);
         document.getElementById("client-active-escrow").textContent = `Rp ${escrowTotal.toLocaleString('id-ID')}`;
@@ -688,6 +688,20 @@ const productCatalog = {
             'Dedicated 24/7 Support selama 6 Bulan'
         ],
         image: 'assets/custom_agent.png'
+    },
+    'Money Detector': {
+        title: 'Deteksi Uang Fisik',
+        badge: 'Lite',
+        badgeClass: '',
+        price: 'Rp 100.000',
+        desc: 'Aplikasi AI Computer Vision untuk mendeteksi nominal dan keaslian uang fisik dengan cepat dan akurat.',
+        features: [
+            'Model Computer Vision AI Terkini',
+            'Deteksi Nominal & Keaslian (Rupiah)',
+            'Kecepatan Inferensi Tinggi (<1 detik)',
+            'Siap Pakai Tanpa Training Tambahan'
+        ],
+        image: 'assets/knowledge_bot.png'
     }
 };
 
@@ -739,7 +753,10 @@ function openCheckout(packageTitle) {
 
     currentProjectId = null; // Reset for new order
     currentPackage = packageTitle;
-    currentPrice = currentPackage.includes('Pro') ? 45000000 : 15000000;
+    let fallbackPrice = 15000000;
+    if (currentPackage.includes('Pro')) fallbackPrice = 45000000;
+    if (currentPackage.includes('Money Detector')) fallbackPrice = 100000;
+    currentPrice = productCatalog[currentPackage] ? parseInt(productCatalog[currentPackage].price.replace(/[^0-9]/g, '')) || fallbackPrice : fallbackPrice;
 
     document.getElementById("selected-package-text").textContent = currentPackage;
     document.getElementById("tagihan-display").textContent = `Rp ${currentPrice.toLocaleString('id-ID')}`;
@@ -1155,7 +1172,7 @@ async function resumeContract(projectId) {
     const p = clientProjects.find(x => x.id === projectId);
     if (p) {
         currentPackage = p.name;
-        currentPrice = p.name.includes('Pro') ? 45000000 : 15000000;
+        currentPrice = p.name.includes('Enterprise RAG') ? 45000000 : 100000;
     }
     
     // checkoutView is an overlay, no need to switch away from dashboard
@@ -1179,7 +1196,7 @@ async function openPaymentModal(projectId) {
     const p = clientProjects.find(x => x.id === projectId);
     if (p) {
         currentPackage = p.name;
-        currentPrice = p.name.includes('Pro') ? 45000000 : 15000000;
+        currentPrice = p.name.includes('Enterprise RAG') ? 45000000 : 100000;
     }
     checkoutView.classList.remove("hidden");
     showStep(3);
@@ -1272,12 +1289,12 @@ function printInvoiceById(id) {
                 <tbody>
                     <tr>
                         <td style="border:1px solid #000; padding:10px;">Pengembangan Sistem AI: ${p.name}</td>
-                        <td style="border:1px solid #000; padding:10px; text-align:right;">Rp 15.000.000</td>
+                        <td style="border:1px solid #000; padding:10px; text-align:right;">Rp ${(p.name.includes('Enterprise RAG') ? 45000000 : 100000).toLocaleString('id-ID')}</td>
                     </tr>
                 </tbody>
             </table>
             
-            <div style="text-align:right; font-size:18px; font-weight:bold;">Total Tagihan: Rp 15.000.000</div>
+            <div style="text-align:right; font-size:18px; font-weight:bold;">Total Tagihan: Rp ${(p.name.includes('Enterprise RAG') ? 45000000 : 100000).toLocaleString('id-ID')}</div>
             
             <div style="margin-top:50px; border-top: 1px dashed #ccc; padding-top:20px; font-size:12px; color:#666;">
                 *Invoice ini diterbitkan secara otomatis oleh sistem Aura AI Labs. Status: <strong>BELUM DIBAYAR</strong>
@@ -1314,7 +1331,7 @@ function printReceiptById(id) {
     const p = clientProjects.find(x => x.id === id);
     if (!p) return;
     
-    const price = p.name.includes('Pro') ? 45000000 : 15000000;
+    const price = p.name.includes('Enterprise RAG') ? 45000000 : 100000;
     const terbilangText = terbilang(price) + " Rupiah";
 
     const receiptHtml = `
