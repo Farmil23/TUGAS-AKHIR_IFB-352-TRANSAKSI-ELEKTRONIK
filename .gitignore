@@ -14,7 +14,7 @@ venv/
 env/
 .venv/
 .env.local
-
+tes/
 # ─── Environment Variables (KEEP .env.example, IGNORE actual secrets) ─────────
 .env
 *.env
