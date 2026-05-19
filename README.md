@@ -57,8 +57,32 @@
 4. **Jalankan Aplikasi**:
    ```bash
    uvicorn app.main:app --reload
+   uvicorn app.main:app --host 0.0.0.0 --port 8000
    ```
 
+5. **Siapkan Deteksi Uang Tunai (Opsional)**:
+   - Tambahkan `ROBOFLOW_API_KEY`, `ROBOFLOW_WORKSPACE_NAME`, dan `ROBOFLOW_WORKFLOW_ID` ke ` .env `.
+   - Backend sekarang memanggil `InferenceHTTPClient.run_workflow()` sesuai sample Roboflow Anda.
+   - Model yang dipakai idealnya workflow YOLO/object detection dengan class nominal uang, misalnya `1000`, `2000`, `5000`, `10000`, dan seterusnya.
+   - Jika Roboflow belum disiapkan, backend akan fallback ke deteksi lokal berbasis template OpenCV.
+
+## Deteksi Pembayaran Tunai
+
+Endpoint upload bukti pembayaran tunai tersedia di:
+
+```http
+POST /api/v1/payments/upload-physical?project_id=123
+```
+
+Contoh request dengan `curl`:
+
+```bash
+curl -X POST "http://127.0.0.1:8000/api/v1/payments/upload-physical?project_id=123" \
+  -H "Authorization: Bearer <JWT_TOKEN>" \
+  -F "file=@/path/to/foto-uang.jpg"
+```
+
+Response sukses akan berisi nominal terdeteksi, confidence, source deteksi, dan daftar predictions.
 ---
 
 ## 📈 Alur Penggunaan (End-to-End)
