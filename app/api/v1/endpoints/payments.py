@@ -10,7 +10,7 @@ from app.services.audit_service import write_audit_log
 from app.api.dependencies import get_db, get_current_user
 from app.models.user import User, UserRole
 from app.core.config import settings
-from app.services.rupiah_service import rupiah_detector
+from app.services.cash_detection_service import cash_detector
 
 router = APIRouter()
 
@@ -234,21 +234,25 @@ async def upload_physical_payment(
             detail=f"Failed to read image file: {str(e)}"
         )
 
-    # Lakukan deteksi rupiah cv2 logic
-    detection_result = rupiah_detector.detect_rupiah_from_bytes(image_bytes)
+    # Lakukan deteksi uang dengan Roboflow YOLO, fallback ke template OpenCV bila perlu
+    detection_result = cash_detector.detect_from_bytes(image_bytes)
 
-    if detection_result.get("status") == "failed" or detection_result.get("status") == "error":
+    if detection_result.get("status") in {"failed", "error"}:
         # Anda dapat mengembalikan error secara langsung atau hanya peringatan
         return {
             "status": "warning",
-            "message": detection_result.get("message"),
+            "message": detection_result.get("message") or detection_result.get("fallback_reason") or "Deteksi tunai tidak berhasil.",
             "requires_admin_validation": True,
-            "detected_nominal": None
+            "detected_nominal": None,
+            "source": detection_result.get("source"),
+            "fallback_reason": detection_result.get("fallback_reason"),
+            "roboflow_error": detection_result.get("roboflow_error"),
+            "predictions": detection_result.get("predictions", []),
         }
 
     # Jika berhasil mendeteksi, kembalikan ke frontend
-    nominal = detection_result["nominal"]
-    confidence = detection_result["confidence"]
+    nominal = detection_result.get("detected_nominal") or detection_result.get("nominal")
+    confidence = detection_result.get("confidence")
 
     # Simpan image bytes ke file system untuk admin preview
     import os
@@ -275,6 +279,10 @@ async def upload_physical_payment(
         "message": f"Uang pecahan {nominal} terdeteksi secara otomatis.",
         "detected_nominal": nominal,
         "confidence": confidence,
+        "source": detection_result.get("source"),
+        "predictions": detection_result.get("predictions", []),
+        "fallback_reason": detection_result.get("fallback_reason"),
+        "roboflow_error": detection_result.get("roboflow_error"),
         "requires_admin_validation": True,
         "instructions": "Admin akan segera memvalidasi pembayaran manual ini."
     }

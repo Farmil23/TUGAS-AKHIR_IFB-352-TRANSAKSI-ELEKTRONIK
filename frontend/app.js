@@ -1114,6 +1114,7 @@ window.addEventListener('load', async () => {
 
 // PHYSICAL PAYMENT UPLOAD
 const fileInput = document.getElementById('physicalPaymentFile');
+let currentPreviewUrl = null;
 if (fileInput) {
     fileInput.addEventListener('change', async (e) => {
         const file = e.target.files[0];
@@ -1121,6 +1122,29 @@ if (fileInput) {
 
         const btn = document.getElementById("btnPhysicalPayment");
         const resultDiv = document.getElementById("physicalPaymentResult");
+        const previewBox = document.getElementById("physicalPaymentPreview");
+        const previewImg = document.getElementById("physicalPaymentPreviewImg");
+        const fileMeta = document.getElementById("physicalPaymentFileMeta");
+        const apiStatus = document.getElementById("physicalPaymentApiStatus");
+        const loadingBox = document.getElementById("physicalPaymentLoading");
+
+        if (!file.type.startsWith("image/")) {
+            resultDiv.style.color = "#ef4444";
+            resultDiv.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> File harus berupa gambar.`;
+            fileInput.value = "";
+            return;
+        }
+
+        if (currentPreviewUrl) {
+            URL.revokeObjectURL(currentPreviewUrl);
+        }
+
+        currentPreviewUrl = URL.createObjectURL(file);
+        previewImg.src = currentPreviewUrl;
+        fileMeta.textContent = `${file.name} • ${(file.size / 1024).toFixed(1)} KB`;
+        previewBox.classList.remove("hidden");
+        apiStatus.innerHTML = `<i class="fa-solid fa-circle-info"></i> Siap memanggil <strong>POST /api/v1/payments/upload-physical?project_id=${currentProjectId}</strong>`;
+        loadingBox.classList.remove("hidden");
         
         btn.disabled = true;
         btn.innerHTML = `<div class="loader" style="border-top-color:transparent; display:inline-block; vertical-align:middle; width:15px; height:15px; border-width:2px;"></div> <span style="vertical-align:middle;">Mendeteksi Nominal AI...</span>`;
@@ -1130,6 +1154,7 @@ if (fileInput) {
         formData.append("file", file);
 
         try {
+            apiStatus.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Memanggil <strong>POST /api/v1/payments/upload-physical?project_id=${currentProjectId}</strong>...`;
             const res = await authFetch(`${API_URL}/payments/upload-physical?project_id=${currentProjectId}`, {
                 method: "POST",
                 body: formData
@@ -1140,27 +1165,48 @@ if (fileInput) {
             if (res.ok && data.status === "success") {
                 resultDiv.style.color = "#10b981";
                 resultDiv.innerHTML = `<i class="fa-solid fa-check"></i> ${data.message}<br><span class="muted" style="color:#94a3b8">${data.instructions}</span>`;
+
+                if (data.source || data.confidence) {
+                    const sourceLabel = data.source ? `<span class="payment-detail-pill">Source: ${data.source}</span>` : "";
+                    const confidenceLabel = typeof data.confidence === "number" ? `<span class="payment-detail-pill">Confidence: ${(data.confidence * 100).toFixed(1)}%</span>` : "";
+                    resultDiv.innerHTML += `<div class="payment-result-row">${sourceLabel}${confidenceLabel}</div>`;
+                }
+
+                if (Array.isArray(data.predictions) && data.predictions.length) {
+                    const topPrediction = data.predictions[0];
+                    resultDiv.innerHTML += `<div class="payment-result-sub">Top class: <strong>${topPrediction.class}</strong> • nominal: <strong>${topPrediction.nominal}</strong></div>`;
+                }
                 
                 document.getElementById("finalStatus").textContent = "AWAITING_ADMIN_VALIDATION";
                 document.getElementById("finalStatus").style.color = "#f59e0b";
                 
                 // Refresh Dashboard tables in background
                 if (isAuth && userRole === "client") renderClientDashboard();
+                apiStatus.innerHTML = `<i class="fa-solid fa-circle-check"></i> Request selesai. Backend merespons sukses.`;
                 
                 setTimeout(() => {
                     switchView("view-client-dashboard");
                     window.scrollTo(0, 0);
                 }, 4000);
+            } else if (res.ok && data.status === "warning") {
+                resultDiv.style.color = "#f59e0b";
+                const fallbackReason = data.fallback_reason ? `<div class="payment-result-sub">Fallback: ${data.fallback_reason}</div>` : "";
+                const roboflowError = data.roboflow_error ? `<div class="payment-result-sub">Roboflow: ${data.roboflow_error.status_code || "-"} • ${data.roboflow_error.api_message || data.roboflow_error.description || "unknown"}</div>` : "";
+                resultDiv.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${data.message || "Deteksi tunai belum pasti."}<br><span class="muted" style="color:#94a3b8">Silakan cek manual oleh admin.</span>${fallbackReason}${roboflowError}`;
+                apiStatus.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> Roboflow gagal, backend memakai fallback lokal.`;
             } else {
                 resultDiv.style.color = "#ef4444";
                 resultDiv.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${data.message || data.detail}`;
+                apiStatus.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Request gagal. Backend mengembalikan error.`;
             }
         } catch (err) {
             resultDiv.style.color = "#ef4444";
             resultDiv.innerHTML = `<i class="fa-solid fa-xmark"></i> Koneksi ke AI backend gagal: ${err.message}`;
+            apiStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Gagal memanggil API.`;
         } finally {
             btn.disabled = false;
-            btn.innerHTML = `<i class="fa-solid fa-camera"></i> Scan Bukti Pembayaran Tunai`;
+            btn.innerHTML = `<i class="fa-solid fa-camera"></i> Ambil Foto / Buka Kamera`;
+            loadingBox.classList.add("hidden");
             fileInput.value = ""; // reset
         }
     });

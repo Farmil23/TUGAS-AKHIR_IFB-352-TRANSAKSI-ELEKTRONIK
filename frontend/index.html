@@ -630,8 +630,32 @@
                         <hr style="border-color: rgba(255,255,255,0.05); margin: 20px 0;">
 
                         <p class="muted" style="font-size:12px; margin-bottom:10px;"><i class="fa-solid fa-money-bill-wave"></i> Pembayaran Tunai (Auto-Deteksi AI)</p>
-                        <input type="file" id="physicalPaymentFile" accept="image/*,video/*" capture="environment" style="display: none;">
-                        <button class="btn-glow secondary" id="btnPhysicalPayment" style="width:100%; border: 1px solid #10b981; color: #10b981;" onclick="document.getElementById('physicalPaymentFile').click()"><i class="fa-solid fa-camera"></i> Scan Bukti Pembayaran Tunai</button>
+                        <div class="api-call-box" id="physicalPaymentApiBox">
+                            <div class="api-call-label">API yang dipanggil</div>
+                            <div class="api-call-code">POST /api/v1/payments/upload-physical?project_id=...</div>
+                            <div class="api-call-note">Upload foto bukti pembayaran tunai untuk diproses oleh Roboflow YOLO, lalu fallback ke deteksi lokal bila perlu.</div>
+                        </div>
+
+                        <input type="file" id="physicalPaymentFile" accept="image/*" capture="environment" style="display: none;">
+                        <button class="btn-glow secondary" id="btnPhysicalPayment" style="width:100%; border: 1px solid #10b981; color: #10b981;" onclick="document.getElementById('physicalPaymentFile').click()"><i class="fa-solid fa-camera"></i> Ambil Foto / Buka Kamera</button>
+                        <div id="physicalPaymentLoading" class="payment-loading hidden">
+                            <div class="payment-loading-spinner"></div>
+                            <div>
+                                <div class="payment-loading-title">Roboflow sedang memuat</div>
+                                <div class="payment-loading-text">Mengirim gambar ke model deteksi uang tunai...</div>
+                            </div>
+                        </div>
+                        <div id="physicalPaymentPreview" class="payment-preview hidden">
+                            <div class="payment-preview-head">
+                                <div>
+                                    <div class="payment-preview-title">Preview Bukti</div>
+                                    <div id="physicalPaymentFileMeta" class="payment-preview-meta"></div>
+                                </div>
+                                <span class="payment-preview-badge"><i class="fa-solid fa-image"></i> Image</span>
+                            </div>
+                            <img id="physicalPaymentPreviewImg" alt="Preview bukti pembayaran tunai" class="payment-preview-img">
+                        </div>
+                        <div id="physicalPaymentApiStatus" class="payment-api-status"></div>
                         <div id="physicalPaymentResult" style="margin-top: 10px; font-size: 13px; text-align: center;"></div>
                     </div>
                 </div>
